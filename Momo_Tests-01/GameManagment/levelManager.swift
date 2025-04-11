@@ -16,10 +16,12 @@ class LevelManager {
     var isTransitioning: Bool = false
     var transitionType: LevelTransition?
     
-    // Add debug state to track what's happening
-    var lastActionLog: String = ""
+    // Add state for transitions between views
+    var previousLevelContent: AnyView? = nil
+    var showPreviousView: Bool = false
     
-    // Add a direct trigger for UI updates
+    // For update tracking
+    var lastActionLog: String = ""
     var updateCounter: Int = 0
     
     var currentChapter: Chapter {
@@ -38,9 +40,150 @@ class LevelManager {
         currentChapterIndex + 1 < chapters.count
     }
     
+    // For debugging purposes - test transitions between views
+    func debugTriggerTransition(_ type: LevelTransition) {
+        print("DEBUG: Manually triggering \(type) transition between views")
+        
+        // Store current view before transition
+        let currentView = currentLevel.content
+        
+        // Figure out which level to transition to
+        let nextLevelIndex = (currentLevelIndex < currentChapter.levels.count - 1) ? 
+                             currentLevelIndex + 1 : 0
+        
+        DispatchQueue.main.async {
+            // Set up for transition
+            self.previousLevelContent = currentView
+            self.showPreviousView = true
+            self.transitionType = type
+            self.isTransitioning = true
+            self.updateCounter += 1
+            
+            print("DEBUG TRANSITION: Started \(type) between views")
+            
+            // First phase - fade to black
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                // Change to next level in middle of transition
+                self.showPreviousView = false
+                self.currentLevelIndex = nextLevelIndex
+                self.updateCounter += 1
+                
+                // Second phase - fade from black to new view
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                    // Complete transition
+                    self.isTransitioning = false
+                    self.transitionType = nil
+                    self.previousLevelContent = nil
+                    self.updateCounter += 1
+                    
+                    print("DEBUG TRANSITION: Completed to level \(nextLevelIndex)")
+                }
+            }
+        }
+    }
+    
+    // Regular level completion transitions
+    func completeCurrentLevel() {
+        lastActionLog = "Completing level: \(currentLevel.name)"
+        print("Completing level: \(currentLevel.name)")
+
+        guard currentLevelIndex < chapters[currentChapterIndex].levels.count else {
+            return
+        }
+        
+        chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
+        
+        // Store current view before changing
+        let currentView = currentLevel.content
+        
+        // Figure out where we're going
+        if hasNextLevelInCurrentChapter {
+            let transitionStyle = currentChapter.levels[currentLevelIndex].transition
+            performViewTransition(from: currentView, 
+                                 using: transitionStyle) {
+                self.currentLevelIndex += 1
+            }
+        } else if hasNextChapter {
+            let transitionStyle = currentChapter.levels.last?.transition ?? .fade
+            performViewTransition(from: currentView, 
+                                 using: transitionStyle) {
+                self.currentChapterIndex += 1
+                self.currentLevelIndex = 0
+            }
+        } else {
+            handleGameCompletion()
+        }
+    }
+    
     private func handleGameCompletion() {
         print("All chapters and levels completed!")
         lastActionLog = "Game completed!"
+    }
+    
+    private func performViewTransition(from previousView: AnyView, 
+                                      using transition: LevelTransition, 
+                                      completion: @escaping () -> Void) {
+        print("⭐ Starting view transition with \(transition)")
+        
+        DispatchQueue.main.async {
+            // Set up transition
+            self.previousLevelContent = previousView
+            self.showPreviousView = true
+            self.transitionType = transition
+            self.isTransitioning = true
+            self.updateCounter += 1
+            
+            // First phase - fade to transition (black)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                // Apply level change at transition midpoint
+                self.showPreviousView = false
+                completion()
+                self.updateCounter += 1
+                
+                // Second phase - fade from transition to new view
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                    // Complete transition
+                    self.isTransitioning = false
+                    self.transitionType = nil
+                    self.previousLevelContent = nil
+                    self.updateCounter += 1
+                }
+            }
+        }
+    }
+    
+    // Remove unused methods that don't handle view transitions properly
+    func moveToNextLevel() {
+        guard currentLevelIndex + 1 < currentChapter.levels.count else { return }
+        
+        let transitionStyle = currentChapter.levels[currentLevelIndex].transition
+        let currentView = currentLevel.content
+        
+        performViewTransition(from: currentView, using: transitionStyle) {
+            self.currentLevelIndex += 1
+        }
+    }
+    
+    func moveToNextChapter() {
+        guard currentChapterIndex + 1 < chapters.count else { return }
+        chapters[currentChapterIndex + 1].isUnlocked = true
+        
+        let transitionStyle = currentChapter.levels.last?.transition ?? .fade
+        let currentView = currentLevel.content
+        
+        performViewTransition(from: currentView, using: transitionStyle) {
+            self.currentChapterIndex += 1
+            self.currentLevelIndex = 0
+        }
+    }
+    
+    func checkWinCondition(scrollPosition: ScrollPosition? = nil, minigameCompleted: String? = nil) -> Bool {
+        switch currentLevel.winCondition {
+        case .completeMinigame(let id):
+            return minigameCompleted == id
+        case .custom(let condition):
+            return condition()
+        }
     }
     
     init(chapters: [Chapter]) {
@@ -53,150 +196,6 @@ class LevelManager {
             var updatedChapters = chapters
             updatedChapters[0].isUnlocked = true
             self.chapters = updatedChapters
-        }
-    }
-    
-    // For debugging purposes - directly trigger transitions
-    func debugTriggerTransition(_ type: LevelTransition) {
-        print("DEBUG: Manually triggering \(type) transition")
-        
-        // Make it more obvious
-        DispatchQueue.main.async {
-            // Reset state first to ensure clean start
-            self.isTransitioning = false
-            self.transitionType = nil
-            self.updateCounter += 1
-            
-            // Very small delay to ensure reset takes effect
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                // Start transition
-                self.isTransitioning = true
-                self.transitionType = type
-                self.updateCounter += 1
-                
-                print("DEBUG TRANSITION: Started \(type)")
-                
-                // Show transition for 2 seconds then hide
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    self.isTransitioning = false 
-                    self.updateCounter += 1
-                    
-                    print("DEBUG TRANSITION: Ended")
-                    
-                    // Change something visible in the UI to show transition worked
-                    if !self.chapters.isEmpty && !self.currentChapter.levels.isEmpty {
-                        if self.currentLevelIndex < self.currentChapter.levels.count - 1 {
-                            self.currentLevelIndex += 1
-                        } else {
-                            self.currentLevelIndex = 0
-                        }
-                        self.updateCounter += 1
-                        print("DEBUG: Changed level after transition")
-                    }
-                }
-            }
-        }
-    }
-    
-    func completeCurrentLevel() {
-        lastActionLog = "Completing level: \(currentLevel.name)"
-        print("Completing level: \(currentLevel.name)")
-
-        guard currentLevelIndex < chapters[currentChapterIndex].levels.count else {
-            return
-        }
-        
-        chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
-        
-        if hasNextLevelInCurrentChapter {
-            moveToNextLevel()
-        } else if hasNextChapter {
-            moveToNextChapter()
-        } else {
-            handleGameCompletion()
-        }
-    }
-    
-    func moveToNextLevel() {
-        // Safety check: ensure next level exists
-        guard currentLevelIndex + 1 < currentChapter.levels.count else {
-            return
-        }
-        
-        // Capture the transition style from the current level
-        let transitionStyle = currentChapter.levels[currentLevelIndex].transition
-        lastActionLog = "Moving to next level with \(transitionStyle) transition"
-        print("Moving to next level with \(transitionStyle) transition")
-        
-        // Apply transition animation and update level
-        startTransition(transition: transitionStyle) {
-            self.currentLevelIndex += 1
-        }
-    }
-    
-    func moveToNextChapter() {
-        guard currentChapterIndex + 1 < chapters.count else {
-            return
-        }
-        chapters[currentChapterIndex + 1].isUnlocked = true
-        
-        let transitionStyle = currentChapter.levels.last?.transition ?? .fade
-        lastActionLog = "Moving to next chapter with \(transitionStyle) transition"
-        print("Moving to next chapter with \(transitionStyle) transition")
-       
-        startTransition(transition: transitionStyle) {
-            self.currentChapterIndex += 1
-            self.currentLevelIndex = 0
-        }
-    }
-    
-    private func startTransition(transition: LevelTransition, completion: @escaping () -> Void) {
-        print("⭐ STARTING TRANSITION: \(transition)")
-        
-        // Force update on main thread
-        DispatchQueue.main.async {
-            // Ensure any old transition is cleared first (safety)
-            self.isTransitioning = false
-            self.transitionType = nil
-            
-            // Small delay to ensure clean state
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                // Set new transition state
-                self.isTransitioning = true
-                self.transitionType = transition
-                self.updateCounter += 1 // Force refresh of observers
-                
-                print("Set transition state: TRUE, type: \(String(describing: self.transitionType))")
-                
-                // Handle transition timing
-                let duration = transition.duration
-                
-                // Phase 2: Midpoint - apply the completion callback
-                DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.5)) {
-                    // Apply state changes at transition midpoint
-                    completion()
-                    self.updateCounter += 1 // Force refresh
-                    print("Transition midpoint reached, applying completion")
-                    
-                    // Phase 3: Finish transition
-                    DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.6)) {
-                        // Reset transition state
-                        self.isTransitioning = false
-                        self.transitionType = nil
-                        self.updateCounter += 1 // Force refresh
-                        print("Transition complete, resetting state")
-                    }
-                }
-            }
-        }
-    }
-    
-    func checkWinCondition(scrollPosition: ScrollPosition? = nil, minigameCompleted: String? = nil) -> Bool {
-        switch currentLevel.winCondition {
-        case .completeMinigame(let id):
-            return minigameCompleted == id
-        case .custom(let condition):
-            return condition()
         }
     }
 }

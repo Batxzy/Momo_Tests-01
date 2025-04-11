@@ -4,9 +4,7 @@ struct ContentView: View {
     @State private var levelManager: LevelManager
     @State private var minigameCompleted: String? = nil
     @State private var debugMessage: String = ""
-    
-    // Force view updates when transitions change
-    @State private var forceRefresh: Bool = false 
+    @State private var forceRefresh: Bool = false
     
     init() {
         _levelManager = State(initialValue: LevelManager(chapters: []))
@@ -16,29 +14,24 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Display the current level content
-            levelManager.currentLevel.content
-                .edgesIgnoringSafeArea(.all)
-            
-            // Separate overlay for transitions
-            if levelManager.isTransitioning {
-                if let type = levelManager.transitionType {
-                    switch type {
-                    case .fade:
-                        FadeTransition(isActive: true)
-                            .transition(.opacity)
-                            .zIndex(1000)
-                            .animation(.easeInOut(duration: 0.5), value: levelManager.isTransitioning)
-                    case .cameraPan:
-                        CameraPanTransition(isActive: true, direction: .trailing)
-                            .transition(.opacity)
-                            .zIndex(1000)
-                            .animation(.easeInOut(duration: 0.8), value: levelManager.isTransitioning)
-                    }
-                }
+            // Show previous level content during transition if available
+            if levelManager.isTransitioning && levelManager.showPreviousView, 
+               let previousContent = levelManager.previousLevelContent {
+                previousContent
+                    .edgesIgnoringSafeArea(.all)
+            }
+            // Otherwise show current level content
+            else {
+                levelManager.currentLevel.content
+                    .edgesIgnoringSafeArea(.all)
             }
             
-            // Debug overlay in top corner - can be removed in production
+            // Apply transition overlay
+            if levelManager.isTransitioning {
+                transitionOverlay
+            }
+            
+            // Debug overlay
             VStack {
                 HStack {
                     VStack(alignment: .leading) {
@@ -48,7 +41,7 @@ struct ContentView: View {
                             .font(.caption)
                         Text("Type: \(levelManager.transitionType?.debugDescription ?? "none")")
                             .font(.caption)
-                        Text("Update counter: \(levelManager.updateCounter)")
+                        Text("Level: \(levelManager.currentLevelIndex)")
                             .font(.caption)
                         
                         // Add buttons to test transitions directly
@@ -56,7 +49,7 @@ struct ContentView: View {
                             Button("Test Fade") {
                                 print("Fade button pressed")
                                 levelManager.debugTriggerTransition(.fade)
-                                forceRefresh.toggle() // Force view update
+                                forceRefresh.toggle()
                             }
                             .padding(4)
                             .background(Color.blue)
@@ -66,18 +59,10 @@ struct ContentView: View {
                             Button("Test Pan") {
                                 print("Pan button pressed")
                                 levelManager.debugTriggerTransition(.cameraPan)
-                                forceRefresh.toggle() // Force view update
+                                forceRefresh.toggle()
                             }
                             .padding(4)
                             .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(4)
-                            
-                            Button("Force Refresh") {
-                                forceRefresh.toggle() // Force view update
-                            }
-                            .padding(4)
-                            .background(Color.orange)
                             .foregroundColor(.white)
                             .cornerRadius(4)
                         }
@@ -95,7 +80,6 @@ struct ContentView: View {
         }
         .id(forceRefresh) // Force full refresh when this changes
         .onChange(of: levelManager.updateCounter) { _, _ in
-            // Force refresh when the levelManager indicates it's needed
             forceRefresh.toggle()
         }
         .onChange(of: minigameCompleted) { _, newValue in
@@ -109,17 +93,36 @@ struct ContentView: View {
                     debugMessage += " | Completing level"
                     print("⭐ COMPLETING LEVEL FOR \(completedId)")
                     
-                    // Immediately mark as nil to avoid repeated triggers
                     minigameCompleted = nil
                     
-                    // Small delay to ensure UI updates properly
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         levelManager.completeCurrentLevel()
-                        forceRefresh.toggle() // Force refresh
+                        forceRefresh.toggle()
                     }
                 }
             }
         }
+    }
+    
+    // A single transition overlay that adapts to the current transition type
+    private var transitionOverlay: some View {
+        Group {
+            if let type = levelManager.transitionType {
+                switch type {
+                case .fade:
+                    Color.black
+                        .opacity(levelManager.showPreviousView ? 0 : 1.0) // Fade in
+                        .animation(.easeInOut(duration: 0.75), value: levelManager.showPreviousView)
+                        .zIndex(100)
+                case .cameraPan:
+                    Color.black
+                        .opacity(levelManager.showPreviousView ? 0 : 1.0) // Fade in
+                        .animation(.easeInOut(duration: 0.75), value: levelManager.showPreviousView)
+                        .zIndex(100)
+                }
+            }
+        }
+        .ignoresSafeArea()
     }
     
     private func createGameLevels() -> [Chapter] {
