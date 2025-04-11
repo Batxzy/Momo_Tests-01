@@ -97,10 +97,12 @@ struct ContentView: View {
                             print("Pan button pressed")
                             // First determine destination index
                             let nextIndex = levelManager.getNextLevelIndex()
-                            // Then trigger scroll behavior directly
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                            
+                            // Then animate to the next position with properly timed animation
+                            withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
                                 scrollPosition = "level-\(levelManager.currentChapterIndex)-\(nextIndex)"
-                                // Give time for the scroll to start before updating the model
+                                
+                                // Update model after a brief delay to match animation timing
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     levelManager.currentLevelIndex = nextIndex
                                     levelManager.updateCounter += 1
@@ -181,16 +183,16 @@ struct ScrollViewCarousel: View {
     var onLevelSelected: (Int) -> Void
     
     // Disable ScrollView pan gesture completely
-    private class NoOpScrollViewDelegate: NSObject, UIScrollViewDelegate {
-        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    private class NoOpScrollViewDelegate: NSObject, UIScrollViewDelegate {tions but no scrolling
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {owsIndicators: false) {
             scrollView.isScrollEnabled = false
-            DispatchQueue.main.async {
-                scrollView.isScrollEnabled = true
-            }
-        }
-    }
-    
-    var body: some View {
+            DispatchQueue.main.async {       ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
+                scrollView.isScrollEnabled = true               let level = levelManager.currentChapter.levels[index]
+            }                   
+        }                    // Individual level view - full screen
+    }evel.content
+    ame(width: geometry.size.width, height: geometry.size.height)
+    var body: some View {            .id("level-\(levelManager.currentChapterIndex)-\(index)")
         // Full-screen carousel
         ZStack {
             // Main carousel
@@ -199,56 +201,56 @@ struct ScrollViewCarousel: View {
                     LazyHStack(spacing: 0) {
                         // Generate all levels in the current chapter as full-screen views
                         ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
-                            let level = levelManager.currentChapter.levels[index]
-                            
+                            let level = levelManager.currentChapter.levels[index]locks gestures
+                            h content below
                             // Individual level view - full screen
                             level.content
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .id("level-\(levelManager.currentChapterIndex)-\(index)")
-                                .contentShape(Rectangle())
-                        }
+                                .frame(width: geometry.size.width, height: geometry.size.height) geometry.size.height)
+                                .id("level-\(levelManager.currentChapterIndex)-\(index)")hape(Rectangle())
+                                .contentShape(Rectangle())is captures and consumes all drag events
+                        }gesture(
                     }
-                }
-                // Apply UIKit delegate to disable scrolling
+                }hanged { _ in }
+                // Apply UIKit delegate to disable scrolling}
                 .background(
                     ScrollViewDisabler()
                 )
                 .onAppear {
                     // Ensure initial position is correct
-                    withAnimation(.none) {
+                    withAnimation(.none) {lling events
                         scrollPosition = "level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)"
-                    }
+                    } -> Void) -> some View {
                 }
                 .onChange(of: scrollPosition) { _, newPos in
-                    if let pos = newPos {
-                        scrollReader.scrollTo(pos, anchor: .center)
-                    }
+                    if let pos = newPos {ffset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
+                        scrollReader.scrollTo(pos, anchor: .center)                    y: -geo.frame(in: .named("scroll")).minY)
+                    }   Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
                 }
             }
             .scrollDisabled(true) // Native SwiftUI way to disable scrolling
-            
+            e)
             // Catch-all gesture blocker overlay - passes touches to content but blocks scrolling
             Color.clear
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .contentShape(Rectangle())
+                .contentShape(Rectangle()) action: @escaping (CGPoint) -> Void) -> some View {
                 // This high-priority gesture prevents any ScrollView gestures
                 .highPriorityGesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in }
-                        .onEnded { _ in }
-                )
-                .allowsHitTesting(false) // Let touches pass through to content
-        }
-    }
+                    DragGesture(minimumDistance: 0)geo.frame(in: .named("scroll")).minX,
+                        .onChanged { _ in }                    y: -geo.frame(in: .named("scroll")).minY)
+                        .onEnded { _ in }ue: offset)
+                )   }
+                .allowsHitTesting(false) // Let touches pass through to content   )
+        }       .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+    }            action(value)
 }
 
 // UIKit delegate to completely disable scrolling behavior
 struct ScrollViewDisabler: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        return view
+    func makeUIView(context: Context) -> UIView {or tracking scroll position
+        let view = UIView()t ScrollOffsetPreferenceKey: PreferenceKey {
+        return viewstatic var defaultValue: CGPoint = .zero
     }
-    
+    ) {
     func updateUIView(_ uiView: UIView, context: Context) {
         // Find the parent ScrollView and disable its scroll behavior
         DispatchQueue.main.async {
@@ -262,57 +264,5 @@ struct ScrollViewDisabler: UIViewRepresentable {
                     scrollView.alwaysBounceHorizontal = false
                     scrollView.alwaysBounceVertical = false
                     scrollView.panGestureRecognizer.isEnabled = false
-                    break
-                }
-            }
-        }
-    }
-}
-
-// Extension for scrolling events
-extension View {
-    func onScrollViewDidScroll(_ action: @escaping (CGPoint) -> Void) -> some View {
-        self.background(
-            GeometryReader { geo in
-                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
-                                     y: -geo.frame(in: .named("scroll")).minY)
-                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
-            }
-        )
-        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-            action(value)
-        }
-    }
-    
-    func onScrollViewDidEndDragging(_ action: @escaping (CGPoint) -> Void) -> some View {
-        self.background(
-            GeometryReader { geo in
-                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
-                                     y: -geo.frame(in: .named("scroll")).minY)
-                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
-            }
-        )
-        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-            action(value)
-        }
-    }
-}
-
-// Preference key for tracking scroll position
-struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGPoint = .zero
-    
-    static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) {
-        value = nextValue()
-    }
-}
-
-// Helper extension
-extension LevelTransition {
-    var debugDescription: String {
-        switch self {
-        case .fade: return "fade"
-        case .cameraPan: return "cameraPan"
-        }
-    }
+                    break                }            }        }    }}// Extension for scrolling eventsextension View {    func onScrollViewDidScroll(_ action: @escaping (CGPoint) -> Void) -> some View {        self.background(            GeometryReader { geo in                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,                                     y: -geo.frame(in: .named("scroll")).minY)                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)            }        )        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in            action(value)        }    }        func onScrollViewDidEndDragging(_ action: @escaping (CGPoint) -> Void) -> some View {        self.background(            GeometryReader { geo in                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,                                     y: -geo.frame(in: .named("scroll")).minY)                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)            }        )        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in            action(value)        }    }}// Preference key for tracking scroll positionstruct ScrollOffsetPreferenceKey: PreferenceKey {    static var defaultValue: CGPoint = .zero        static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) {        value = nextValue()    }}// Helper extensionextension LevelTransition {    var debugDescription: String {        switch self {        case .fade: return "fade"        case .cameraPan: return "cameraPan"        }    }
 }
