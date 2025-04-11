@@ -6,6 +6,10 @@ struct ContentView: View {
     @State private var debugMessage: String = ""
     @State private var forceRefresh: Bool = false
     
+    // States for handling view transitions
+    @State private var isTransitioning: Bool = false
+    @State private var transitionId = UUID()
+    
     init() {
         _levelManager = State(initialValue: LevelManager(chapters: []))
         let chapters = createGameLevels()
@@ -14,73 +18,26 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Show previous level content during transition if available
-            if levelManager.isTransitioning && levelManager.showPreviousView, 
-               let previousContent = levelManager.previousLevelContent {
-                previousContent
-                    .edgesIgnoringSafeArea(.all)
-            }
-            // Otherwise show current level content
-            else {
-                levelManager.currentLevel.content
-                    .edgesIgnoringSafeArea(.all)
-            }
-            
-            // Apply transition overlay
-            if levelManager.isTransitioning {
-                transitionOverlay
-            }
+            // Current level content - always present but conditionally visible
+            currentLevelView
+                .zIndex(1)
             
             // Debug overlay
-            VStack {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Debug: \(debugMessage)")
-                            .font(.caption)
-                        Text("Transitioning: \(levelManager.isTransitioning ? "YES" : "NO")")
-                            .font(.caption)
-                        Text("Type: \(levelManager.transitionType?.debugDescription ?? "none")")
-                            .font(.caption)
-                        Text("Level: \(levelManager.currentLevelIndex)")
-                            .font(.caption)
-                        
-                        // Add buttons to test transitions directly
-                        HStack {
-                            Button("Test Fade") {
-                                print("Fade button pressed")
-                                levelManager.debugTriggerTransition(.fade)
-                                forceRefresh.toggle()
-                            }
-                            .padding(4)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(4)
-                            
-                            Button("Test Pan") {
-                                print("Pan button pressed")
-                                levelManager.debugTriggerTransition(.cameraPan)
-                                forceRefresh.toggle()
-                            }
-                            .padding(4)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(4)
-                        }
-                    }
-                    .padding(8)
-                    .background(Color.black.opacity(0.7))
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                    Spacer()
-                }
-                Spacer()
-            }
-            .padding(.top, 40)
-            .zIndex(200) // Keep debug controls on top
+            debugOverlay
+                .zIndex(10) // Always on top
         }
-        .id(forceRefresh) // Force full refresh when this changes
         .onChange(of: levelManager.updateCounter) { _, _ in
             forceRefresh.toggle()
+        }
+        .onChange(of: levelManager.isTransitioning) { _, newValue in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                isTransitioning = newValue
+            }
+            
+            // Force SwiftUI to rerender the transition by changing its ID
+            if newValue {
+                transitionId = UUID()
+            }
         }
         .onChange(of: minigameCompleted) { _, newValue in
             if let completedId = newValue {
@@ -97,34 +54,70 @@ struct ContentView: View {
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         levelManager.completeCurrentLevel()
-                        forceRefresh.toggle()
                     }
                 }
             }
         }
     }
     
-    // A single transition overlay that adapts to the current transition type
-    private var transitionOverlay: some View {
-        Group {
-            if let type = levelManager.transitionType {
-                switch type {
-                case .fade:
-                    Color.black
-                        .opacity(levelManager.showPreviousView ? 0 : 1.0) // Fade in
-                        .animation(.easeInOut(duration: 0.75), value: levelManager.showPreviousView)
-                        .zIndex(100)
-                case .cameraPan:
-                    Color.black
-                        .opacity(levelManager.showPreviousView ? 0 : 1.0) // Fade in
-                        .animation(.easeInOut(duration: 0.75), value: levelManager.showPreviousView)
-                        .zIndex(100)
-                }
-            }
-        }
-        .ignoresSafeArea()
+    private var currentLevelView: some View {
+        levelManager.currentLevel.content
+            .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)")
+            .transition(
+                AnyTransition.fromLevelTransition(
+                    levelManager.currentLevel.transition
+                )
+            )
+            .animation(.easeInOut(duration: 0.6), value: levelManager.currentLevelIndex)
+            .animation(.easeInOut(duration: 0.8), value: levelManager.currentChapterIndex)
     }
     
+    private var debugOverlay: some View {
+        VStack {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text("Debug: \(debugMessage)")
+                        .font(.caption)
+                    Text("Transitioning: \(levelManager.isTransitioning ? "YES" : "NO")")
+                        .font(.caption)
+                    Text("Type: \(levelManager.currentLevel.transition.debugDescription)")
+                        .font(.caption)
+                    Text("Level: \(levelManager.currentLevelIndex)")
+                        .font(.caption)
+                    
+                    // Add buttons to test transitions directly
+                    HStack {
+                        Button("Test Fade") {
+                            print("Fade button pressed")
+                            levelManager.debugTriggerTransition(.fade)
+                        }
+                        .padding(4)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(4)
+                        
+                        Button("Test Pan") {
+                            print("Pan button pressed")
+                            levelManager.debugTriggerTransition(.cameraPan)
+                        }
+                        .padding(4)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(4)
+                    }
+                }
+                .padding(8)
+                .background(Color.black.opacity(0.7))
+                .foregroundColor(.white)
+                .cornerRadius(8)
+                Spacer()
+            }
+            Spacer()
+        }
+        .padding(.top, 40)
+    }
+    
+    // Create the game levels - static function to avoid 'self' reference
     private func createGameLevels() -> [Chapter] {
         let circlesLevel = Level(
             id: UUID(),
@@ -180,8 +173,4 @@ extension LevelTransition {
         case .cameraPan: return "cameraPan"
         }
     }
-}
-
-#Preview {
-    ContentView()
 }
