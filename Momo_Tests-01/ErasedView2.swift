@@ -139,7 +139,7 @@ struct DustRemoverView2: View {
             
             return percentage
         }
-    // MARK: -View
+// MARK: -View
     var body: some View {
            VStack(spacing: -25) {
                // Main scratch area and images
