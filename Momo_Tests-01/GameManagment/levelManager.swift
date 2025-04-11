@@ -8,8 +8,7 @@
 import Foundation
 import SwiftUI
 
-@Observable
-class LevelManager {
+@Observable class LevelManager {
     var chapters: [Chapter]
     var currentChapterIndex: Int
     var currentLevelIndex: Int
