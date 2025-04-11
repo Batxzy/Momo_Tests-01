@@ -174,9 +174,8 @@ struct ContentView: View {
     }
 }
 
-// LazyScrollView-based carousel component - fix Observable type
+// LazyScrollView-based carousel component that doesn't allow manual scrolling
 struct ScrollViewCarousel: View {
-    // Remove @ObservedObject since we're using @Observable macro
     var levelManager: LevelManager
     let geometry: GeometryProxy
     @Binding var scrollPosition: String?
@@ -196,16 +195,13 @@ struct ScrollViewCarousel: View {
                     // Generate all levels in the current chapter
                     ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
                         let level = levelManager.currentChapter.levels[index]
-                        let isCurrentLevel = index == levelManager.currentLevelIndex
                         
-                        // Individual level view
+                        // Individual level view - no scaling during transitions
                         level.content
                             .padding(20)
                             .background(Color.white)
                             .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.9)
                             .id("level-\(levelManager.currentChapterIndex)-\(index)")
-                            .scaleEffect(isCurrentLevel ? 1.0 : 0.9)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCurrentLevel)
                     }
                     
                     // Add spacer at the end to center the last item
@@ -214,30 +210,11 @@ struct ScrollViewCarousel: View {
                 }
                 .scrollTargetLayout()
             }
-            .coordinateSpace(name: "scroll") // Important for scroll tracking
+            .coordinateSpace(name: "scroll")
             .scrollPosition(id: $scrollPosition)
             .scrollTargetBehavior(.viewAligned)
             .scrollIndicators(.hidden)
-            // Track when user is scrolling vs. programmatic scrolling
-            .onScrollViewDidScroll { _ in
-                isScrolling = true
-            }
-            .onScrollViewDidEndDragging { point in
-                // When user finishes scrolling, find which element they stopped on
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    isScrolling = false
-                    
-                    // Figure out which level we're positioned at
-                    if let positionId = scrollPosition,
-                       positionId.hasPrefix("level-\(levelManager.currentChapterIndex)-") {
-                        let components = positionId.components(separatedBy: "-")
-                        if components.count >= 3, let index = Int(components[2]) {
-                            onLevelSelected(index)
-                        }
-                    }
-                }
-            }
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: scrollPosition)
+            .disabled(true) // Disable manual scrolling completely
         }
     }
 }
