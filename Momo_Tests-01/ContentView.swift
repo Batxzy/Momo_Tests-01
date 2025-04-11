@@ -172,7 +172,7 @@ struct ContentView: View {
     }
 }
 
-// LazyScrollView-based carousel component that allows content interaction
+// LazyScrollView-based carousel component that completely blocks scrolling
 struct ScrollViewCarousel: View {
     var levelManager: LevelManager
     let geometry: GeometryProxy
@@ -180,41 +180,91 @@ struct ScrollViewCarousel: View {
     @Binding var isScrolling: Bool
     var onLevelSelected: (Int) -> Void
     
+    // Disable ScrollView pan gesture completely
+    private class NoOpScrollViewDelegate: NSObject, UIScrollViewDelegate {
+        func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+            scrollView.isScrollEnabled = false
+            DispatchQueue.main.async {
+                scrollView.isScrollEnabled = true
+            }
+        }
+    }
+    
     var body: some View {
         // Full-screen carousel
         ZStack {
             // Main carousel
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 0) { // No spacing between views
-                    // Generate all levels in the current chapter as full-screen views
-                    ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
-                        let level = levelManager.currentChapter.levels[index]
-                        
-                        // Individual level view - full screen
-                        level.content
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                            .id("level-\(levelManager.currentChapterIndex)-\(index)")
-                            .edgesIgnoringSafeArea(.all) // Extend to edges
+            ScrollViewReader { scrollReader in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 0) {
+                        // Generate all levels in the current chapter as full-screen views
+                        ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
+                            let level = levelManager.currentChapter.levels[index]
+                            
+                            // Individual level view - full screen
+                            level.content
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                                .id("level-\(levelManager.currentChapterIndex)-\(index)")
+                                .contentShape(Rectangle())
+                        }
                     }
                 }
-                .scrollTargetLayout()
+                // Apply UIKit delegate to disable scrolling
+                .background(
+                    ScrollViewDisabler()
+                )
+                .onAppear {
+                    // Ensure initial position is correct
+                    withAnimation(.none) {
+                        scrollPosition = "level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)"
+                    }
+                }
+                .onChange(of: scrollPosition) { _, newPos in
+                    if let pos = newPos {
+                        scrollReader.scrollTo(pos, anchor: .center)
+                    }
+                }
             }
-            .coordinateSpace(name: "scroll")
-            .scrollPosition(id: $scrollPosition)
-            .scrollTargetBehavior(.paging) // Use paging behavior to snap to each full screen
-            .scrollIndicators(.hidden)
-            // Instead of .disabled(true), use a gesture mask
-            .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in })
-            .allowsHitTesting(true) // Explicitly allow hit testing
+            .scrollDisabled(true) // Native SwiftUI way to disable scrolling
             
-            // Overlay to catch scroll gestures but pass through other interactions
+            // Catch-all gesture blocker overlay - passes touches to content but blocks scrolling
             Color.clear
-                .contentShape(Rectangle())
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                // Make this view receive drag gestures but don't react to them
-                // This effectively prevents scrolling but allows taps to pass through
-                .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in })
-                .allowsHitTesting(false) // Let interactions pass through
+                .contentShape(Rectangle())
+                // This high-priority gesture prevents any ScrollView gestures
+                .highPriorityGesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in }
+                        .onEnded { _ in }
+                )
+                .allowsHitTesting(false) // Let touches pass through to content
+        }
+    }
+}
+
+// UIKit delegate to completely disable scrolling behavior
+struct ScrollViewDisabler: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {
+        // Find the parent ScrollView and disable its scroll behavior
+        DispatchQueue.main.async {
+            var parentResponder: UIResponder? = uiView
+            while parentResponder != nil {
+                parentResponder = parentResponder?.next
+                if let scrollView = parentResponder as? UIScrollView {
+                    scrollView.isScrollEnabled = false
+                    // For safety, also set non-interactive
+                    scrollView.bounces = false
+                    scrollView.alwaysBounceHorizontal = false
+                    scrollView.alwaysBounceVertical = false
+                    scrollView.panGestureRecognizer.isEnabled = false
+                    break
+                }
+            }
         }
     }
 }
