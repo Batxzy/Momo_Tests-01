@@ -40,7 +40,9 @@ struct ContentView: View {
             .onChange(of: levelManager.currentLevelIndex) { _, newIndex in
                 // When level changes programmatically, scroll to that position
                 if !isUserScrolling {
-                    scrollPosition = "level-\(levelManager.currentChapterIndex)-\(newIndex)"
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        scrollPosition = "level-\(levelManager.currentChapterIndex)-\(newIndex)"
+                    }
                 }
             }
             .onChange(of: levelManager.updateCounter) { _, _ in
@@ -93,7 +95,17 @@ struct ContentView: View {
                         
                         Button("Test Pan") {
                             print("Pan button pressed")
-                            levelManager.debugTriggerTransition(.cameraPan)
+                            // First determine destination index
+                            let nextIndex = levelManager.getNextLevelIndex()
+                            // Then trigger scroll behavior directly
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                scrollPosition = "level-\(levelManager.currentChapterIndex)-\(nextIndex)"
+                                // Give time for the scroll to start before updating the model
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    levelManager.currentLevelIndex = nextIndex
+                                    levelManager.updateCounter += 1
+                                }
+                            }
                         }
                         .padding(4)
                         .background(Color.green)
@@ -162,9 +174,10 @@ struct ContentView: View {
     }
 }
 
-// LazyScrollView-based carousel component
+// LazyScrollView-based carousel component - fix Observable type
 struct ScrollViewCarousel: View {
-    @ObservedObject var levelManager: LevelManager
+    // Remove @ObservedObject since we're using @Observable macro
+    var levelManager: LevelManager
     let geometry: GeometryProxy
     @Binding var scrollPosition: String?
     @Binding var isScrolling: Bool
@@ -192,6 +205,7 @@ struct ScrollViewCarousel: View {
                             .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.9)
                             .id("level-\(levelManager.currentChapterIndex)-\(index)")
                             .scaleEffect(isCurrentLevel ? 1.0 : 0.9)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCurrentLevel)
                     }
                     
                     // Add spacer at the end to center the last item
@@ -200,6 +214,7 @@ struct ScrollViewCarousel: View {
                 }
                 .scrollTargetLayout()
             }
+            .coordinateSpace(name: "scroll") // Important for scroll tracking
             .scrollPosition(id: $scrollPosition)
             .scrollTargetBehavior(.viewAligned)
             .scrollIndicators(.hidden)

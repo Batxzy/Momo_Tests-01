@@ -42,15 +42,11 @@ class LevelManager {
         case next, previous
     }
     
-    // For debugging purposes - trigger transitions between views
-    func debugTriggerTransition(_ type: LevelTransition) {
-        print("DEBUG: Manually triggering \(type) transition between views")
-        
-        // Handle directional transitions - toggle between levels
+    // Get the next logical level index for transitions
+    func getNextLevelIndex() -> Int {
         let totalLevels = currentChapter.levels.count
-        if totalLevels < 2 { return }
+        if totalLevels < 2 { return currentLevelIndex } // No change if fewer than 2 levels
         
-        // Determine next level and direction
         let nextLevelIndex: Int
         if transitionDirection == .next {
             // Going forward
@@ -61,15 +57,26 @@ class LevelManager {
         }
         
         // Toggle direction for next time
-        transitionDirection = transitionDirection == .next ? .previous : .next 
+        transitionDirection = transitionDirection == .next ? .previous : .next
         
-        // Set transition type and start transitioning
-        transitionType = type
-        isTransitioning = true
+        return nextLevelIndex
+    }
+    
+    // For debugging purposes - trigger transitions between views
+    func debugTriggerTransition(_ type: LevelTransition) {
+        print("DEBUG: Manually triggering \(type) transition between views")
         
-        // Change level immediately - transition is handled by SwiftUI
-        self.currentLevelIndex = nextLevelIndex
-        updateCounter += 1
+        // Just use the fade transition directly
+        if type == .fade {
+            // Set transition type and start transitioning
+            transitionType = type
+            isTransitioning = true
+            
+            // Change level immediately
+            currentLevelIndex = getNextLevelIndex()
+            updateCounter += 1
+        }
+        // Camera pan transitions are now handled via ScrollView in ContentView
     }
     
     // Regular level completion transitions
