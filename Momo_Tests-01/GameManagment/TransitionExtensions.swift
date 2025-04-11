@@ -7,22 +7,24 @@ extension AnyTransition {
     }
     
     // Carousel-style pan with spacing between views
-    static func carouselPan(edge: Edge = .leading) -> AnyTransition {
+    static func carouselPan(edge: Edge = .leading, spacing: CGFloat = 40) -> AnyTransition {
         .asymmetric(
-            insertion: AnyTransition.offset(x: edge == .leading ? UIScreen.main.bounds.width : -UIScreen.main.bounds.width, y: 0)
+            insertion: AnyTransition.offset(x: edge == .leading ? UIScreen.main.bounds.width + spacing : -UIScreen.main.bounds.width - spacing, y: 0)
                 .combined(with: .opacity),
-            removal: AnyTransition.offset(x: edge == .leading ? -UIScreen.main.bounds.width : UIScreen.main.bounds.width, y: 0)
+            removal: AnyTransition.offset(x: edge == .leading ? -UIScreen.main.bounds.width - spacing : UIScreen.main.bounds.width + spacing, y: 0)
                 .combined(with: .opacity)
         )
     }
     
-    // Convert our enum to SwiftUI's native transitions
-    static func fromLevelTransition(_ transition: LevelTransition) -> AnyTransition {
+    // Convert our enum to SwiftUI's native transitions, with direction awareness
+    static func fromLevelTransition(_ transition: LevelTransition, direction: LevelManager.TransitionDirection = .next) -> AnyTransition {
         switch transition {
         case .fade:
             return .opacity
         case .cameraPan:
-            return .carouselPan(edge: .leading)
+            return direction == .next ? 
+                .carouselPan(edge: .leading, spacing: 40) : 
+                .carouselPan(edge: .trailing, spacing: 40)
         }
     }
 }

@@ -4,11 +4,6 @@ struct ContentView: View {
     @State private var levelManager: LevelManager
     @State private var minigameCompleted: String? = nil
     @State private var debugMessage: String = ""
-    @State private var forceRefresh: Bool = false
-    
-    // States for handling view transitions
-    @State private var isTransitioning: Bool = false
-    @State private var transitionId = UUID()
     
     init() {
         _levelManager = State(initialValue: LevelManager(chapters: []))
@@ -19,43 +14,20 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Create a carousel container
-                HStack(spacing: 0) {
-                    // Current level content with proper animation and ID
-                    levelManager.currentLevel.content
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(transitionId)")
-                        .transition(
-                            AnyTransition.fromLevelTransition(
-                                levelManager.currentLevel.transition
-                            )
-                        )
-                }
-                .animation(
-                    Animation.fromLevelTransition(levelManager.currentLevel.transition), 
-                    value: levelManager.currentLevelIndex
+                // The content area using state-driven transitions
+                CarouselContentView(
+                    levelManager: levelManager,
+                    geometry: geometry
                 )
-                .animation(
-                    .spring(response: 0.8, dampingFraction: 0.7), 
-                    value: levelManager.currentChapterIndex
-                )
+                .zIndex(1)
                 
                 // Debug overlay
                 debugOverlay
-                    .zIndex(10) // Always on top
+                    .zIndex(10)
             }
             .onChange(of: levelManager.updateCounter) { _, _ in
-                forceRefresh.toggle()
-            }
-            .onChange(of: levelManager.isTransitioning) { _, newValue in
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                    isTransitioning = newValue
-                }
-                
-                // Force SwiftUI to rerender the transition by changing its ID
-                if newValue {
-                    transitionId = UUID()
-                }
+                // This will be triggered whenever the levels change
+                print("Update counter changed to: \(levelManager.updateCounter)")
             }
             .onChange(of: minigameCompleted) { _, newValue in
                 if let completedId = newValue {
@@ -69,16 +41,12 @@ struct ContentView: View {
                         print("⭐ COMPLETING LEVEL FOR \(completedId)")
                         
                         minigameCompleted = nil
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            levelManager.completeCurrentLevel()
-                        }
+                        levelManager.completeCurrentLevel()
                     }
                 }
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .id(forceRefresh) // Force full refresh when this changes
     }
     
     private var debugOverlay: some View {
@@ -136,7 +104,6 @@ struct ContentView: View {
                     debugMessage = "Circles completed!"
                     print("⭐ CIRCLES GAME COMPLETED!")
                     minigameCompleted = "circles"
-                    forceRefresh.toggle() // Force refresh
                 })
                 .padding(20)
                 .background(Color.white)
@@ -157,7 +124,6 @@ struct ContentView: View {
                         debugMessage = "Dust threshold reached!"
                         print("⭐ DUST REMOVAL THRESHOLD REACHED!")
                         minigameCompleted = "dust"
-                        forceRefresh.toggle() // Force refresh
                     }
                 )
                 .padding(20)
@@ -175,6 +141,31 @@ struct ContentView: View {
         )
         
         return [chapter1]
+    }
+}
+
+// Separate component for carousel - handle all animation state here
+struct CarouselContentView: View {
+    @ObservedObject var levelManager: LevelManager
+    let geometry: GeometryProxy
+    
+    var body: some View {
+        HStack(spacing: levelManager.itemSpacing) {
+            levelManager.currentLevel.content
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .id("level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)")
+                .transition(
+                    AnyTransition.fromLevelTransition(
+                        levelManager.currentLevel.transition,
+                        direction: levelManager.transitionDirection
+                    )
+                )
+                .animation(
+                    .spring(response: 0.7, dampingFraction: 0.8), 
+                    value: levelManager.currentLevelIndex
+                )
+        }
+        .frame(width: geometry.size.width, height: geometry.size.height)
     }
 }
 

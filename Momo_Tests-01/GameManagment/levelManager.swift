@@ -15,6 +15,8 @@ class LevelManager {
     var currentLevelIndex: Int
     var isTransitioning: Bool = false
     var transitionType: LevelTransition?
+    var transitionDirection: TransitionDirection = .next
+    var itemSpacing: CGFloat = 40 // Space between carousel items
     
     // For update tracking
     var lastActionLog: String = ""
@@ -36,36 +38,28 @@ class LevelManager {
         currentChapterIndex + 1 < chapters.count
     }
     
+    enum TransitionDirection {
+        case next, previous
+    }
+    
     // For debugging purposes - trigger transitions between views
     func debugTriggerTransition(_ type: LevelTransition) {
         print("DEBUG: Manually triggering \(type) transition between views")
         
         // Figure out which level to transition to
         let nextLevelIndex = (currentLevelIndex < currentChapter.levels.count - 1) ? 
-                             currentLevelIndex + 1 : 0
+                            currentLevelIndex + 1 : 0
+                            
+        // First set the transition direction 
+        transitionDirection = nextLevelIndex > currentLevelIndex ? .next : .previous
         
-        // Important: First set the transition type BEFORE setting isTransitioning
+        // Set transition type and start transitioning - animation handled by SwiftUI
         transitionType = type
-        updateCounter += 1
+        isTransitioning = true
         
-        // Add a longer delay to ensure everything is ready
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
-                // Signal transition start
-                self.isTransitioning = true
-                self.updateCounter += 1
-                
-                // Change level immediately after starting transition
-                self.currentLevelIndex = nextLevelIndex
-            }
-            
-            // Allow more time for the spring animation to complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.isTransitioning = false
-                self.transitionType = nil
-                self.updateCounter += 1
-            }
-        }
+        // Change level immediately - transition is handled by SwiftUI
+        self.currentLevelIndex = nextLevelIndex
+        updateCounter += 1
     }
     
     // Regular level completion transitions
@@ -81,36 +75,22 @@ class LevelManager {
         
         // Retain current transition style before changing state
         let transitionStyle = currentLevel.transition
-        // Set transition type first
-        self.transitionType = transitionStyle
-        self.updateCounter += 1
-        
-        // Use the same improved timing for regular transitions
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
-                // Start transition
-                self.isTransitioning = true
+        transitionType = transitionStyle
+        transitionDirection = .next // Always move forward on completion
+        isTransitioning = true
                 
-                // Determine destination during the transition
-                if self.hasNextLevelInCurrentChapter {
-                    self.currentLevelIndex += 1
-                } else if self.hasNextChapter {
-                    self.chapters[self.currentChapterIndex + 1].isUnlocked = true
-                    self.currentChapterIndex += 1  
-                    self.currentLevelIndex = 0
-                } else {
-                    self.handleGameCompletion()
-                }
-                self.updateCounter += 1
-            }
-            
-            // Allow more time for the spring animation to complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.isTransitioning = false
-                self.transitionType = nil
-                self.updateCounter += 1
-            }
+        // Update level/chapter immediately - transition is handled by SwiftUI 
+        if hasNextLevelInCurrentChapter {
+            currentLevelIndex += 1
+        } else if hasNextChapter {
+            chapters[currentChapterIndex + 1].isUnlocked = true
+            currentChapterIndex += 1
+            currentLevelIndex = 0
+        } else {
+            handleGameCompletion()
         }
+        
+        updateCounter += 1
     }
     
     private func handleGameCompletion() {
