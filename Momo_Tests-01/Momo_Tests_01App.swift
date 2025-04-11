@@ -11,7 +11,7 @@ import SwiftUI
 struct Momo_Tests_01App: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Test_Transition()
         }
     }
 }
