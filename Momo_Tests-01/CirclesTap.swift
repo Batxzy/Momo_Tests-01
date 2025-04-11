@@ -11,6 +11,8 @@ struct CirclesView: View {
     // Track which circles have been tapped
     @State private var circleTapped = [false, false, false, false]
    
+    var onGameComplete: (() -> Void)?
+    
     public var TapCompleted: Bool  {
         for index in 0..<4{
             if !circleTapped[index]{
@@ -44,6 +46,9 @@ struct CirclesView: View {
                         if TapCompleted {
                         gameDone = true
                             print(gameDone	)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                onGameComplete?()
+                            }
                     }
                 }
             }
