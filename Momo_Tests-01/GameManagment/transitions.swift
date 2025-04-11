@@ -15,7 +15,6 @@ struct FadeTransition: View {
             .fill(Color.black)
             .opacity(isActive ? 1.0 : 0.0)
             .edgesIgnoringSafeArea(.all)
-            .animation(.easeInOut(duration: 0.5), value: isActive)
     }
 }
 
@@ -29,30 +28,6 @@ struct CameraPanTransition: View {
                 .fill(Color.black)
                 .edgesIgnoringSafeArea(.all)
                 .opacity(isActive ? 1.0 : 0.0)
-                .offset(x: isActive ? 0 : offsetX(geometry), y: isActive ? 0 : offsetY(geometry))
-                .animation(.easeInOut(duration: 0.8), value: isActive)
-        }
-    }
-    
-    private func offsetX(_ geometry: GeometryProxy) -> CGFloat {
-        switch direction {
-        case .leading:
-            return -geometry.size.width
-        case .trailing:
-            return geometry.size.width
-        default:
-            return 0
-        }
-    }
-    
-    private func offsetY(_ geometry: GeometryProxy) -> CGFloat {
-        switch direction {
-        case .top:
-            return -geometry.size.height
-        case .bottom:
-            return geometry.size.height
-        default:
-            return 0
         }
     }
 }

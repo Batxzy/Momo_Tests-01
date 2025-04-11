@@ -39,8 +39,12 @@ struct ContentView: View {
             switch levelManager.transitionType {
             case .fade:
                 FadeTransition(isActive: true)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.5), value: levelManager.isTransitioning)
             case .cameraPan:
                 CameraPanTransition(isActive: true, direction: .trailing)
+                    .transition(.move(edge: .trailing))
+                    .animation(.easeInOut(duration: 0.8), value: levelManager.isTransitioning)
             case .none:
                 EmptyView()
             }

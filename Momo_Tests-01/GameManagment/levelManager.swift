@@ -102,24 +102,26 @@ class LevelManager {
         
         // Schedule the completion to happen after the transition duration
         Task {
-                // Phase 1: Wait for transition entrance animation to finish
-                try? await Task.sleep(for: .seconds(transition.duration))
+            // Phase 1: Wait for transition entrance animation to finish
+            try? await Task.sleep(for: .seconds(transition.duration * 0.5))
+            
+            await MainActor.run {
+                // Phase 2: Apply state changes at transition midpoint
+                completion()
                 
-                await MainActor.run {
-                    // Phase 2: Apply state changes at transition midpoint
-                    completion()
+                // Phase 3: Finish transition with slight delay
+                Task {
+                    // Give more time for the exit animation
+                    try? await Task.sleep(for: .seconds(transition.duration * 0.6))
                     
-                    // Phase 3: Finish transition with slight delay
-                    Task {
-                        // Small delay for visual polish
-                        try? await Task.sleep(for: .seconds(0.1))
-                        
+                    await MainActor.run {
                         // Reset transition state
                         isTransitioning = false
                         transitionType = nil
                     }
                 }
             }
+        }
     }
     
     func checkWinCondition(scrollPosition: ScrollPosition? = nil, minigameCompleted: String? = nil) -> Bool {
