@@ -135,8 +135,7 @@ struct ContentView: View {
                     print("⭐ CIRCLES GAME COMPLETED!")
                     minigameCompleted = "circles"
                 })
-                .padding(40) // Increased padding for more space
-                .background(Color.white)
+                // No padding or background to allow full screen usage
             ),
             transition: .cameraPan,
             winCondition: .completeMinigame("circles")
@@ -156,8 +155,7 @@ struct ContentView: View {
                         minigameCompleted = "dust"
                     }
                 )
-                .padding(40) // Increased padding for more space
-                .background(Color.white)
+                // No padding or background to allow full screen usage
             ),
             transition: .cameraPan,
             winCondition: .completeMinigame("dust")
@@ -174,7 +172,7 @@ struct ContentView: View {
     }
 }
 
-// LazyScrollView-based carousel component that doesn't allow manual scrolling
+// LazyScrollView-based carousel component that allows content interaction
 struct ScrollViewCarousel: View {
     var levelManager: LevelManager
     let geometry: GeometryProxy
@@ -183,38 +181,40 @@ struct ScrollViewCarousel: View {
     var onLevelSelected: (Int) -> Void
     
     var body: some View {
-        // Outer container to handle positioning
+        // Full-screen carousel
         ZStack {
             // Main carousel
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 40) {
-                    // Add spacer at the beginning to center the first item
-                    Spacer()
-                        .frame(width: geometry.size.width * 0.1)
-                    
-                    // Generate all levels in the current chapter
+                LazyHStack(spacing: 0) { // No spacing between views
+                    // Generate all levels in the current chapter as full-screen views
                     ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
                         let level = levelManager.currentChapter.levels[index]
                         
-                        // Individual level view - no scaling during transitions
+                        // Individual level view - full screen
                         level.content
-                            .padding(20)
-                            .background(Color.white)
-                            .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.9)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
                             .id("level-\(levelManager.currentChapterIndex)-\(index)")
+                            .edgesIgnoringSafeArea(.all) // Extend to edges
                     }
-                    
-                    // Add spacer at the end to center the last item
-                    Spacer()
-                        .frame(width: geometry.size.width * 0.1)
                 }
                 .scrollTargetLayout()
             }
             .coordinateSpace(name: "scroll")
             .scrollPosition(id: $scrollPosition)
-            .scrollTargetBehavior(.viewAligned)
+            .scrollTargetBehavior(.paging) // Use paging behavior to snap to each full screen
             .scrollIndicators(.hidden)
-            .disabled(true) // Disable manual scrolling completely
+            // Instead of .disabled(true), use a gesture mask
+            .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in })
+            .allowsHitTesting(true) // Explicitly allow hit testing
+            
+            // Overlay to catch scroll gestures but pass through other interactions
+            Color.clear
+                .contentShape(Rectangle())
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                // Make this view receive drag gestures but don't react to them
+                // This effectively prevents scrolling but allows taps to pass through
+                .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in })
+                .allowsHitTesting(false) // Let interactions pass through
         }
     }
 }
