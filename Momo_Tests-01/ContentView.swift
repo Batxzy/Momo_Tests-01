@@ -25,11 +25,22 @@ struct ContentView: View {
                 transitionView
             }
         }
-        .onChange(of: minigameCompleted) { _, newValue in
-            if let completedId = newValue,
-               levelManager.checkWinCondition(minigameCompleted: completedId) {
-                levelManager.completeCurrentLevel()
-                minigameCompleted = nil
+        .onChange(of: minigameCompleted) { old, newValue in
+            print("Minigame completion changed: \(String(describing: old)) -> \(String(describing: newValue))")
+            
+            if let completedId = newValue {
+                print("Checking win condition for: \(completedId)")
+                let isWinConditionMet = levelManager.checkWinCondition(minigameCompleted: completedId)
+                print("Win condition met: \(isWinConditionMet)")
+                
+                if isWinConditionMet {
+                    print("Completing current level")
+                    levelManager.completeCurrentLevel()
+                    // Reset after a slight delay to ensure animations complete
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        minigameCompleted = nil
+                    }
+                }
             }
         }
     }
@@ -39,12 +50,8 @@ struct ContentView: View {
             switch levelManager.transitionType {
             case .fade:
                 FadeTransition(isActive: true)
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.5), value: levelManager.isTransitioning)
             case .cameraPan:
                 CameraPanTransition(isActive: true, direction: .trailing)
-                    .transition(.move(edge: .trailing))
-                    .animation(.easeInOut(duration: 0.8), value: levelManager.isTransitioning)
             case .none:
                 EmptyView()
             }
@@ -58,6 +65,7 @@ struct ContentView: View {
             name: "Circle Tapping Game",
             content: AnyView(
                 CirclesView(onGameComplete: {
+                    print("Circles game completed!")
                     minigameCompleted = "circles"
                 })
             ),
@@ -74,6 +82,7 @@ struct ContentView: View {
                     foregroundImage: Image("rectangle35"),
                     completionThreshold: 80,
                     onThresholdReached: {
+                        print("Dust removal threshold reached!")
                         minigameCompleted = "dust"
                     }
                 )
@@ -85,7 +94,7 @@ struct ContentView: View {
         let chapter1 = Chapter(
             id: UUID(),
             title: "Chapter 1",
-            levels: [dustRemoverLevel,circlesLevel],
+            levels: [dustRemoverLevel, circlesLevel],
             isUnlocked: true
         )
         
