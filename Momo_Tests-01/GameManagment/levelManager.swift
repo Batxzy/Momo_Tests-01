@@ -48,21 +48,19 @@ class LevelManager {
         transitionType = type
         updateCounter += 1
         
-        // Use SwiftUI animation system more directly - trigger the animation 
-        // after a tiny delay to ensure state is ready
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+        // Add a longer delay to ensure everything is ready
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
                 // Signal transition start
                 self.isTransitioning = true
                 self.updateCounter += 1
                 
                 // Change level immediately after starting transition
-                // SwiftUI's transition system will handle the visual effect
                 self.currentLevelIndex = nextLevelIndex
             }
             
-            // After transition completes - reset state
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            // Allow more time for the spring animation to complete
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.isTransitioning = false
                 self.transitionType = nil
                 self.updateCounter += 1
@@ -87,9 +85,9 @@ class LevelManager {
         self.transitionType = transitionStyle
         self.updateCounter += 1
         
-        // Use SwiftUI animation system more directly
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+        // Use the same improved timing for regular transitions
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
                 // Start transition
                 self.isTransitioning = true
                 
@@ -106,8 +104,8 @@ class LevelManager {
                 self.updateCounter += 1
             }
             
-            // Reset transition state after animation completes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            // Allow more time for the spring animation to complete
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.isTransitioning = false
                 self.transitionType = nil
                 self.updateCounter += 1

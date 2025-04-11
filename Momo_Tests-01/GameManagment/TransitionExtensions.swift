@@ -6,11 +6,13 @@ extension AnyTransition {
         .opacity
     }
     
-    // Improved camera pan that properly shows both views during transition
-    static func cameraPan(edge: Edge = .leading) -> AnyTransition {
+    // Carousel-style pan with spacing between views
+    static func carouselPan(edge: Edge = .leading) -> AnyTransition {
         .asymmetric(
-            insertion: .move(edge: edge),
-            removal: .move(edge: edge == .leading ? .trailing : .leading)
+            insertion: AnyTransition.offset(x: edge == .leading ? UIScreen.main.bounds.width : -UIScreen.main.bounds.width, y: 0)
+                .combined(with: .opacity),
+            removal: AnyTransition.offset(x: edge == .leading ? -UIScreen.main.bounds.width : UIScreen.main.bounds.width, y: 0)
+                .combined(with: .opacity)
         )
     }
     
@@ -20,7 +22,7 @@ extension AnyTransition {
         case .fade:
             return .opacity
         case .cameraPan:
-            return .cameraPan(edge: .leading) // Always come in from left side
+            return .carouselPan(edge: .leading)
         }
     }
 }
@@ -30,9 +32,9 @@ extension Animation {
     static func fromLevelTransition(_ transition: LevelTransition) -> Animation {
         switch transition {
         case .fade:
-            return .spring(response: 0.5, dampingFraction: 0.8)
+            return .spring(response: 0.6, dampingFraction: 0.8)
         case .cameraPan:
-            return .spring(response: 0.6, dampingFraction: 0.7)
+            return .spring(response: 0.7, dampingFraction: 0.8)
         }
     }
 }

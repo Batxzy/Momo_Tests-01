@@ -17,15 +17,20 @@ struct ContentView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Current level content with proper animation and ID
-            levelManager.currentLevel.content
-                .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(transitionId)")
-                .transition(
-                    AnyTransition.fromLevelTransition(
-                        levelManager.currentLevel.transition
-                    )
-                )
+        GeometryReader { geometry in
+            ZStack {
+                // Create a carousel container
+                HStack(spacing: 0) {
+                    // Current level content with proper animation and ID
+                    levelManager.currentLevel.content
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(transitionId)")
+                        .transition(
+                            AnyTransition.fromLevelTransition(
+                                levelManager.currentLevel.transition
+                            )
+                        )
+                }
                 .animation(
                     Animation.fromLevelTransition(levelManager.currentLevel.transition), 
                     value: levelManager.currentLevelIndex
@@ -34,43 +39,46 @@ struct ContentView: View {
                     .spring(response: 0.8, dampingFraction: 0.7), 
                     value: levelManager.currentChapterIndex
                 )
-            
-            // Debug overlay
-            debugOverlay
-                .zIndex(10) // Always on top
-        }
-        .onChange(of: levelManager.updateCounter) { _, _ in
-            forceRefresh.toggle()
-        }
-        .onChange(of: levelManager.isTransitioning) { _, newValue in
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                isTransitioning = newValue
-            }
-            
-            // Force SwiftUI to rerender the transition by changing its ID
-            if newValue {
-                transitionId = UUID()
-            }
-        }
-        .onChange(of: minigameCompleted) { _, newValue in
-            if let completedId = newValue {
-                debugMessage = "Checking: \(completedId)"
                 
-                let isWinConditionMet = levelManager.checkWinCondition(minigameCompleted: completedId)
-                debugMessage += " | Win: \(isWinConditionMet)"
+                // Debug overlay
+                debugOverlay
+                    .zIndex(10) // Always on top
+            }
+            .onChange(of: levelManager.updateCounter) { _, _ in
+                forceRefresh.toggle()
+            }
+            .onChange(of: levelManager.isTransitioning) { _, newValue in
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    isTransitioning = newValue
+                }
                 
-                if isWinConditionMet {
-                    debugMessage += " | Completing level"
-                    print("⭐ COMPLETING LEVEL FOR \(completedId)")
+                // Force SwiftUI to rerender the transition by changing its ID
+                if newValue {
+                    transitionId = UUID()
+                }
+            }
+            .onChange(of: minigameCompleted) { _, newValue in
+                if let completedId = newValue {
+                    debugMessage = "Checking: \(completedId)"
                     
-                    minigameCompleted = nil
+                    let isWinConditionMet = levelManager.checkWinCondition(minigameCompleted: completedId)
+                    debugMessage += " | Win: \(isWinConditionMet)"
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        levelManager.completeCurrentLevel()
+                    if isWinConditionMet {
+                        debugMessage += " | Completing level"
+                        print("⭐ COMPLETING LEVEL FOR \(completedId)")
+                        
+                        minigameCompleted = nil
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            levelManager.completeCurrentLevel()
+                        }
                     }
                 }
             }
         }
+        .edgesIgnoringSafeArea(.all)
+        .id(forceRefresh) // Force full refresh when this changes
     }
     
     private var debugOverlay: some View {
@@ -130,8 +138,10 @@ struct ContentView: View {
                     minigameCompleted = "circles"
                     forceRefresh.toggle() // Force refresh
                 })
+                .padding(20)
+                .background(Color.white)
             ),
-            transition: .fade,
+            transition: .cameraPan, // Use cameraPan for all transitions for consistency
             winCondition: .completeMinigame("circles")
         )
         
@@ -150,6 +160,8 @@ struct ContentView: View {
                         forceRefresh.toggle() // Force refresh
                     }
                 )
+                .padding(20)
+                .background(Color.white)
             ),
             transition: .cameraPan,
             winCondition: .completeMinigame("dust")
