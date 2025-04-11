@@ -1,15 +1,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    // Fix the initialization error by separating level creation from init
     @State private var levelManager: LevelManager
     @State private var minigameCompleted: String? = nil
     
+    // Add debug state to track what's happening
+    @State private var debugMessage: String = ""
+    
     init() {
-        // Create a temporary empty array for initialization
         _levelManager = State(initialValue: LevelManager(chapters: []))
         
-        // Then set up the real levels after initialization
         let chapters = createGameLevels()
         _levelManager = State(initialValue: LevelManager(chapters: chapters))
     }
@@ -20,52 +20,80 @@ struct ContentView: View {
             levelManager.currentLevel.content
                 .edgesIgnoringSafeArea(.all)
             
-            // Transition overlay
-            if levelManager.isTransitioning {
-                transitionView
+            // Transition overlay - must be always in view hierarchy for state changes to work
+            Group {
+                if levelManager.isTransitioning {
+                    transitionOverlay
+                }
             }
+            
+            // Debug overlay in top corner - can be removed in production
+            VStack {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Debug: \(debugMessage)")
+                            .font(.caption)
+                        Text("Transitioning: \(levelManager.isTransitioning ? "YES" : "NO")")
+                            .font(.caption)
+                        Text("Type: \(levelManager.transitionType?.debugDescription ?? "none")")
+                            .font(.caption)
+                    }
+                    .padding(8)
+                    .background(Color.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                    Spacer()
+                }
+                Spacer()
+            }
+            .padding(.top, 40)
         }
         .onChange(of: minigameCompleted) { old, newValue in
-            print("Minigame completion changed: \(String(describing: old)) -> \(String(describing: newValue))")
-            
             if let completedId = newValue {
-                print("Checking win condition for: \(completedId)")
+                debugMessage = "Checking: \(completedId)"
+                
                 let isWinConditionMet = levelManager.checkWinCondition(minigameCompleted: completedId)
-                print("Win condition met: \(isWinConditionMet)")
+                debugMessage += " | Win: \(isWinConditionMet)"
                 
                 if isWinConditionMet {
-                    print("Completing current level")
-                    levelManager.completeCurrentLevel()
-                    // Reset after a slight delay to ensure animations complete
+                    debugMessage += " | Completing level"
+                    print("⭐ COMPLETING LEVEL FOR \(completedId)")
+                    
+                    // Immediately mark as nil to avoid repeated triggers
+                    minigameCompleted = nil
+                    
+                    // Small delay to ensure UI updates properly
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        minigameCompleted = nil
+                        levelManager.completeCurrentLevel()
                     }
                 }
             }
         }
     }
     
-    private var transitionView: some View {
+    private var transitionOverlay: some View {
         Group {
             switch levelManager.transitionType {
             case .fade:
                 FadeTransition(isActive: true)
+                    .zIndex(100) // Ensure it's above everything else
             case .cameraPan:
                 CameraPanTransition(isActive: true, direction: .trailing)
+                    .zIndex(100) // Ensure it's above everything else
             case .none:
-                EmptyView()
+                Color.clear // Empty but still in hierarchy
             }
         }
     }
     
-    // Create the game levels - static function to avoid 'self' reference
     private func createGameLevels() -> [Chapter] {
         let circlesLevel = Level(
             id: UUID(),
             name: "Circle Tapping Game",
             content: AnyView(
                 CirclesView(onGameComplete: {
-                    print("Circles game completed!")
+                    debugMessage = "Circles completed!"
+                    print("⭐ CIRCLES GAME COMPLETED!")
                     minigameCompleted = "circles"
                 })
             ),
@@ -82,7 +110,8 @@ struct ContentView: View {
                     foregroundImage: Image("rectangle35"),
                     completionThreshold: 80,
                     onThresholdReached: {
-                        print("Dust removal threshold reached!")
+                        debugMessage = "Dust threshold reached!"
+                        print("⭐ DUST REMOVAL THRESHOLD REACHED!")
                         minigameCompleted = "dust"
                     }
                 )
@@ -99,6 +128,16 @@ struct ContentView: View {
         )
         
         return [chapter1]
+    }
+}
+
+// Helper extension for LevelTransition debugging
+extension LevelTransition {
+    var debugDescription: String {
+        switch self {
+        case .fade: return "fade"
+        case .cameraPan: return "cameraPan"
+        }
     }
 }
 

@@ -16,6 +16,9 @@ class LevelManager {
     var isTransitioning: Bool = false
     var transitionType: LevelTransition?
     
+    // Add debug state to track what's happening
+    var lastActionLog: String = ""
+    
     var currentChapter: Chapter {
         chapters[currentChapterIndex]
     }
@@ -34,6 +37,7 @@ class LevelManager {
     
     private func handleGameCompletion() {
         print("All chapters and levels completed!")
+        lastActionLog = "Game completed!"
         // Trigger completion animation or navigate to end-game screen
     }
     
@@ -51,20 +55,22 @@ class LevelManager {
     }
     
     func completeCurrentLevel() {
+        lastActionLog = "Completing level: \(currentLevel.name)"
+        print("Completing level: \(currentLevel.name)")
 
         guard currentLevelIndex < chapters[currentChapterIndex].levels.count else {
-              return
-          }
+            return
+        }
         
         chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
         
         if hasNextLevelInCurrentChapter {
-                moveToNextLevel()
-            } else if hasNextChapter {
-                moveToNextChapter()
-            } else {
-                handleGameCompletion()
-            }
+            moveToNextLevel()
+        } else if hasNextChapter {
+            moveToNextChapter()
+        } else {
+            handleGameCompletion()
+        }
     }
     
     func moveToNextLevel() {
@@ -75,6 +81,8 @@ class LevelManager {
         
         // Capture the transition style from the current level
         let transitionStyle = currentChapter.levels[currentLevelIndex].transition
+        lastActionLog = "Moving to next level with \(transitionStyle) transition"
+        print("Moving to next level with \(transitionStyle) transition")
         
         // Apply transition animation and update level
         startTransition(transition: transitionStyle) {
@@ -84,21 +92,28 @@ class LevelManager {
     
     func moveToNextChapter() {
         guard currentChapterIndex + 1 < chapters.count else {
-               return
-           }
+            return
+        }
         chapters[currentChapterIndex + 1].isUnlocked = true
         
         let transitionStyle = currentChapter.levels.last?.transition ?? .fade
+        lastActionLog = "Moving to next chapter with \(transitionStyle) transition"
+        print("Moving to next chapter with \(transitionStyle) transition")
        
         startTransition(transition: transitionStyle) {
-                self.currentChapterIndex += 1
-                self.currentLevelIndex = 0
-            }
+            self.currentChapterIndex += 1
+            self.currentLevelIndex = 0
+        }
     }
     
     private func startTransition(transition: LevelTransition, completion: @escaping () -> Void) {
-        isTransitioning = true
-        transitionType = transition
+        print("⭐ STARTING TRANSITION: \(transition)")
+        // Set these on the main thread immediately
+        DispatchQueue.main.async {
+            self.isTransitioning = true
+            self.transitionType = transition
+            print("Set transitioning to TRUE, type: \(String(describing: self.transitionType))")
+        }
         
         // Schedule the completion to happen after the transition duration
         Task {
@@ -108,6 +123,7 @@ class LevelManager {
             await MainActor.run {
                 // Phase 2: Apply state changes at transition midpoint
                 completion()
+                print("Transition midpoint reached, applying completion")
                 
                 // Phase 3: Finish transition with slight delay
                 Task {
@@ -116,8 +132,9 @@ class LevelManager {
                     
                     await MainActor.run {
                         // Reset transition state
-                        isTransitioning = false
-                        transitionType = nil
+                        self.isTransitioning = false
+                        self.transitionType = nil
+                        print("Reset transitioning to FALSE")
                     }
                 }
             }
@@ -129,7 +146,6 @@ class LevelManager {
             
         case .completeMinigame(let id):
             return minigameCompleted == id
-            
             
         case .custom(let condition):
             return condition()
