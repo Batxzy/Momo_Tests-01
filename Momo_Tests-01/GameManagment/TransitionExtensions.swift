@@ -6,13 +6,23 @@ extension AnyTransition {
         .opacity
     }
     
-    // Carousel-style pan with spacing between views
+    // Enhanced carousel-style pan that maintains visibility of adjacent views
     static func carouselPan(edge: Edge = .leading, spacing: CGFloat = 40) -> AnyTransition {
-        .asymmetric(
-            insertion: AnyTransition.offset(x: edge == .leading ? UIScreen.main.bounds.width + spacing : -UIScreen.main.bounds.width - spacing, y: 0)
-                .combined(with: .opacity),
-            removal: AnyTransition.offset(x: edge == .leading ? -UIScreen.main.bounds.width - spacing : UIScreen.main.bounds.width + spacing, y: 0)
+        // Calculate offsets for a more natural carousel feeling
+        let screenWidth = UIScreen.main.bounds.width
+        let insertionOffset = edge == .leading ? screenWidth * 0.6 : -screenWidth * 0.6
+        let removalOffset = edge == .leading ? -screenWidth * 0.6 : screenWidth * 0.6
+        
+        return .asymmetric(
+            insertion: AnyTransition
+                .offset(x: insertionOffset, y: 0)
                 .combined(with: .opacity)
+                .combined(with: .scale(scale: 0.9, anchor: .center)),
+                
+            removal: AnyTransition
+                .offset(x: removalOffset, y: 0)
+                .combined(with: .opacity)
+                .combined(with: .scale(scale: 0.9, anchor: .center))
         )
     }
     
@@ -23,8 +33,8 @@ extension AnyTransition {
             return .opacity
         case .cameraPan:
             return direction == .next ? 
-                .carouselPan(edge: .leading, spacing: 40) : 
-                .carouselPan(edge: .trailing, spacing: 40)
+                .carouselPan(edge: .leading) : 
+                .carouselPan(edge: .trailing)
         }
     }
 }

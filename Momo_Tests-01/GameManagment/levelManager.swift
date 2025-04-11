@@ -16,7 +16,7 @@ class LevelManager {
     var isTransitioning: Bool = false
     var transitionType: LevelTransition?
     var transitionDirection: TransitionDirection = .next
-    var itemSpacing: CGFloat = 40 // Space between carousel items
+    var itemSpacing: CGFloat = 10 // Reduced spacing to make the carousel more compact
     
     // For update tracking
     var lastActionLog: String = ""
@@ -46,14 +46,24 @@ class LevelManager {
     func debugTriggerTransition(_ type: LevelTransition) {
         print("DEBUG: Manually triggering \(type) transition between views")
         
-        // Figure out which level to transition to
-        let nextLevelIndex = (currentLevelIndex < currentChapter.levels.count - 1) ? 
-                            currentLevelIndex + 1 : 0
-                            
-        // First set the transition direction 
-        transitionDirection = nextLevelIndex > currentLevelIndex ? .next : .previous
+        // Handle directional transitions - toggle between levels
+        let totalLevels = currentChapter.levels.count
+        if totalLevels < 2 { return }
         
-        // Set transition type and start transitioning - animation handled by SwiftUI
+        // Determine next level and direction
+        let nextLevelIndex: Int
+        if transitionDirection == .next {
+            // Going forward
+            nextLevelIndex = (currentLevelIndex < totalLevels - 1) ? currentLevelIndex + 1 : 0
+        } else {
+            // Going backward
+            nextLevelIndex = (currentLevelIndex > 0) ? currentLevelIndex - 1 : totalLevels - 1
+        }
+        
+        // Toggle direction for next time
+        transitionDirection = transitionDirection == .next ? .previous : .next 
+        
+        // Set transition type and start transitioning
         transitionType = type
         isTransitioning = true
         

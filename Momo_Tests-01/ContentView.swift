@@ -144,28 +144,95 @@ struct ContentView: View {
     }
 }
 
-// Separate component for carousel - handle all animation state here
+// Enhanced carousel component showing adjacent views
 struct CarouselContentView: View {
     @ObservedObject var levelManager: LevelManager
     let geometry: GeometryProxy
     
-    var body: some View {
-        HStack(spacing: levelManager.itemSpacing) {
-            levelManager.currentLevel.content
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .id("level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)")
-                .transition(
-                    AnyTransition.fromLevelTransition(
-                        levelManager.currentLevel.transition,
-                        direction: levelManager.transitionDirection
-                    )
-                )
-                .animation(
-                    .spring(response: 0.7, dampingFraction: 0.8), 
-                    value: levelManager.currentLevelIndex
-                )
+    private var activeWidth: CGFloat {
+        geometry.size.width * 0.85 // Main view takes 85% of screen width
+    }
+    
+    private var previewWidth: CGFloat {
+        geometry.size.width * 0.1 // Preview takes 10% of screen width
+    }
+    
+    private var getAdjacentLevels: (previous: Level?, next: Level?) {
+        // Get previous level if it exists
+        let previous: Level?
+        if levelManager.currentLevelIndex > 0 {
+            previous = levelManager.currentChapter.levels[levelManager.currentLevelIndex - 1]
+        } else if levelManager.currentChapterIndex > 0 {
+            let prevChapter = levelManager.chapters[levelManager.currentChapterIndex - 1]
+            previous = prevChapter.levels.last
+        } else {
+            previous = nil
         }
-        .frame(width: geometry.size.width, height: geometry.size.height)
+        
+        // Get next level if it exists
+        let next: Level?
+        if levelManager.currentLevelIndex < levelManager.currentChapter.levels.count - 1 {
+            next = levelManager.currentChapter.levels[levelManager.currentLevelIndex + 1]
+        } else if levelManager.currentChapterIndex < levelManager.chapters.count - 1 {
+            let nextChapter = levelManager.chapters[levelManager.currentChapterIndex + 1]
+            next = nextChapter.levels.first
+        } else {
+            next = nil
+        }
+        
+        return (previous, next)
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background for visibility
+            Color.black.opacity(0.1)
+                .ignoresSafeArea()
+            
+            HStack(spacing: 0) {
+                let adjacentLevels = getAdjacentLevels
+                
+                // Previous view preview (if exists)
+                if let previousLevel = adjacentLevels.previous {
+                    previousLevel.content
+                        .frame(width: previewWidth, height: geometry.size.height * 0.7)
+                        .cornerRadius(15)
+                        .shadow(radius: 5)
+                        .padding(.trailing, 5)
+                        .offset(x: -5)
+                        .opacity(0.7)
+                }
+                
+                // Current view (active)
+                levelManager.currentLevel.content
+                    .frame(width: activeWidth, height: geometry.size.height)
+                    .cornerRadius(15)
+                    .shadow(radius: 10)
+                    .id("level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)")
+                    .transition(
+                        AnyTransition.fromLevelTransition(
+                            levelManager.currentLevel.transition,
+                            direction: levelManager.transitionDirection
+                        )
+                    )
+                    .animation(
+                        .spring(response: 0.7, dampingFraction: 0.8), 
+                        value: levelManager.currentLevelIndex
+                    )
+                
+                // Next view preview (if exists)
+                if let nextLevel = adjacentLevels.next {
+                    nextLevel.content
+                        .frame(width: previewWidth, height: geometry.size.height * 0.7)
+                        .cornerRadius(15)
+                        .shadow(radius: 5)
+                        .padding(.leading, 5)
+                        .offset(x: 5)
+                        .opacity(0.7)
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
     }
 }
 
