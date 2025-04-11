@@ -97,12 +97,10 @@ struct ContentView: View {
                             print("Pan button pressed")
                             // First determine destination index
                             let nextIndex = levelManager.getNextLevelIndex()
-                            
-                            // Then animate to the next position with properly timed animation
-                            withAnimation(.spring(response: 0.7, dampingFraction: 0.8)) {
+                            // Then trigger scroll behavior directly
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                 scrollPosition = "level-\(levelManager.currentChapterIndex)-\(nextIndex)"
-                                
-                                // Update model after a brief delay to match animation timing
+                                // Give time for the scroll to start before updating the model
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                     levelManager.currentLevelIndex = nextIndex
                                     levelManager.updateCounter += 1
@@ -174,7 +172,7 @@ struct ContentView: View {
     }
 }
 
-// Fixed ScrollViewCarousel implementation
+// LazyScrollView-based carousel component that allows content interaction
 struct ScrollViewCarousel: View {
     var levelManager: LevelManager
     let geometry: GeometryProxy
@@ -183,47 +181,69 @@ struct ScrollViewCarousel: View {
     var onLevelSelected: (Int) -> Void
     
     var body: some View {
+        // Full-screen carousel
         ZStack {
-            // Main ScrollView for programmatic scrolling only
-            ScrollViewReader { scrollReader in
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 0) {
-                        ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
-                            let level = levelManager.currentChapter.levels[index]
-                            
-                            level.content
-                                .frame(width: geometry.size.width, height: geometry.size.height)
-                                .id("level-\(levelManager.currentChapterIndex)-\(index)")
-                        }
-                    }
-                    .scrollTargetLayout()
-                }
-                .coordinateSpace(name: "scroll")
-                .scrollPosition(id: $scrollPosition)
-                .scrollTargetBehavior(.paging)
-                .scrollIndicators(.hidden)
-                .onAppear {
-                    // Initialize to current level position
-                    scrollPosition = "level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)"
-                }
-                .onChange(of: scrollPosition) { _, newPosition in
-                    if let pos = newPosition {
-                        scrollReader.scrollTo(pos, anchor: .center)
+            // Main carousel
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 0) { // No spacing between views
+                    // Generate all levels in the current chapter as full-screen views
+                    ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
+                        let level = levelManager.currentChapter.levels[index]
+                        
+                        // Individual level view - full screen
+                        level.content
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .id("level-\(levelManager.currentChapterIndex)-\(index)")
+                            .edgesIgnoringSafeArea(.all) // Extend to edges
                     }
                 }
+                .scrollTargetLayout()
             }
+            .coordinateSpace(name: "scroll")
+            .scrollPosition(id: $scrollPosition)
+            .scrollTargetBehavior(.paging) // Use paging behavior to snap to each full screen
+            .scrollIndicators(.hidden)
+            // Instead of .disabled(true), use a gesture mask
+            .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in })
+            .allowsHitTesting(true) // Explicitly allow hit testing
             
-            // Overlay to block scrolling but allow tap interactions
-            Rectangle()
-                .fill(Color.clear)
+            // Overlay to catch scroll gestures but pass through other interactions
+            Color.clear
                 .contentShape(Rectangle())
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .gesture(
-                    // Block drag gestures to prevent scrolling
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in }
-                )
-                .allowsHitTesting(true) // Capture gestures
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                // Make this view receive drag gestures but don't react to them
+                // This effectively prevents scrolling but allows taps to pass through
+                .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in })
+                .allowsHitTesting(false) // Let interactions pass through
+        }
+    }
+}
+
+// Extension for scrolling events
+extension View {
+    func onScrollViewDidScroll(_ action: @escaping (CGPoint) -> Void) -> some View {
+        self.background(
+            GeometryReader { geo in
+                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
+                                     y: -geo.frame(in: .named("scroll")).minY)
+                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
+            }
+        )
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+            action(value)
+        }
+    }
+    
+    func onScrollViewDidEndDragging(_ action: @escaping (CGPoint) -> Void) -> some View {
+        self.background(
+            GeometryReader { geo in
+                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
+                                     y: -geo.frame(in: .named("scroll")).minY)
+                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
+            }
+        )
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+            action(value)
         }
     }
 }
@@ -245,4 +265,8 @@ extension LevelTransition {
         case .cameraPan: return "cameraPan"
         }
     }
+}
+
+#Preview {
+    ContentView()
 }

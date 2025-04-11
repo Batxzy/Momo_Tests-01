@@ -235,7 +235,7 @@ struct DustRemoverView2: View {
                
                
            }
-           .padding(.top, 25)
+           .frame(width: .infinity, height: .infinity)
        }
    }
 struct DustRemoverSwiftUIView_Previews2: PreviewProvider {
