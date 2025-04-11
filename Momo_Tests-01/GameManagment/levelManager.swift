@@ -49,14 +49,14 @@ class LevelManager {
         transitionType = type
         updateCounter += 1
         
-        // Short delay to allow transition to start visually
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        // Use slightly longer delay for spring animations
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             // Change to next level
             self.currentLevelIndex = nextLevelIndex
             self.updateCounter += 1
             
-            // Short delay to finish transition
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Longer delay for spring animation to complete
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 self.isTransitioning = false
                 self.transitionType = nil
                 self.updateCounter += 1
@@ -81,8 +81,8 @@ class LevelManager {
         transitionType = transitionStyle
         updateCounter += 1
         
-        // Delay to let transition animation start
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        // Slightly longer delay to let spring animation start
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             // Move to appropriate next level or chapter
             if self.hasNextLevelInCurrentChapter {
                 self.currentLevelIndex += 1
@@ -96,8 +96,8 @@ class LevelManager {
             
             self.updateCounter += 1
             
-            // Finish transition after content has changed
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Longer delay for spring animation to complete
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 self.isTransitioning = false
                 self.transitionType = nil
                 self.updateCounter += 1

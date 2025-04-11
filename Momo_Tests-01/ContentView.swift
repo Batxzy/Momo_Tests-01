@@ -30,7 +30,7 @@ struct ContentView: View {
             forceRefresh.toggle()
         }
         .onChange(of: levelManager.isTransitioning) { _, newValue in
-            withAnimation(.easeInOut(duration: 0.5)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 isTransitioning = newValue
             }
             
@@ -68,8 +68,14 @@ struct ContentView: View {
                     levelManager.currentLevel.transition
                 )
             )
-            .animation(.easeInOut(duration: 0.6), value: levelManager.currentLevelIndex)
-            .animation(.easeInOut(duration: 0.8), value: levelManager.currentChapterIndex)
+            .animation(
+                Animation.fromLevelTransition(levelManager.currentLevel.transition), 
+                value: levelManager.currentLevelIndex
+            )
+            .animation(
+                .spring(response: 0.8, dampingFraction: 0.7), 
+                value: levelManager.currentChapterIndex
+            )
     }
     
     private var debugOverlay: some View {
