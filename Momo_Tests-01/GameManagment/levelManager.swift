@@ -59,9 +59,23 @@ class LevelManager {
     // For debugging purposes - directly trigger transitions
     func debugTriggerTransition(_ type: LevelTransition) {
         print("DEBUG: Manually triggering \(type) transition")
-        startTransition(transition: type) {
-            // Do nothing in completion
-            print("DEBUG: Transition midpoint reached")
+        
+        // Direct state changes - bypasses the normal flow for testing
+        DispatchQueue.main.async {
+            // First update the state
+            self.isTransitioning = true
+            self.transitionType = type
+            self.updateCounter += 1 // Force refresh of observers
+            
+            print("Set transition state: TRUE, type: \(type)")
+            
+            // Let it display for 1.5 seconds for testing purposes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                self.isTransitioning = false
+                self.transitionType = nil
+                self.updateCounter += 1 // Force refresh
+                print("Test transition complete, resetting state")
+            }
         }
     }
     
@@ -122,30 +136,37 @@ class LevelManager {
         
         // Force update on main thread
         DispatchQueue.main.async {
-            // First update the state
-            self.isTransitioning = true
-            self.transitionType = transition
-            self.updateCounter += 1 // Force refresh of observers
+            // Ensure any old transition is cleared first (safety)
+            self.isTransitioning = false
+            self.transitionType = nil
             
-            print("Set transition state: TRUE, type: \(String(describing: self.transitionType))")
-            
-            // Handle transition timing
-            let duration = transition.duration
-            
-            // Phase 2: Midpoint - apply the completion callback
-            DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.5)) {
-                // Apply state changes at transition midpoint
-                completion()
-                self.updateCounter += 1 // Force refresh
-                print("Transition midpoint reached, applying completion")
+            // Small delay to ensure clean state
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                // Set new transition state
+                self.isTransitioning = true
+                self.transitionType = transition
+                self.updateCounter += 1 // Force refresh of observers
                 
-                // Phase 3: Finish transition
-                DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.6)) {
-                    // Reset transition state
-                    self.isTransitioning = false
-                    self.transitionType = nil
+                print("Set transition state: TRUE, type: \(String(describing: self.transitionType))")
+                
+                // Handle transition timing
+                let duration = transition.duration
+                
+                // Phase 2: Midpoint - apply the completion callback
+                DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.5)) {
+                    // Apply state changes at transition midpoint
+                    completion()
                     self.updateCounter += 1 // Force refresh
-                    print("Transition complete, resetting state")
+                    print("Transition midpoint reached, applying completion")
+                    
+                    // Phase 3: Finish transition
+                    DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.6)) {
+                        // Reset transition state
+                        self.isTransitioning = false
+                        self.transitionType = nil
+                        self.updateCounter += 1 // Force refresh
+                        print("Transition complete, resetting state")
+                    }
                 }
             }
         }

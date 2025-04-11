@@ -15,6 +15,8 @@ struct FadeTransition: View {
             .fill(Color.black)
             .opacity(isActive ? 1.0 : 0.0)
             .edgesIgnoringSafeArea(.all)
+            .ignoresSafeArea()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.easeInOut(duration: 0.5), value: isActive)
     }
 }
@@ -28,6 +30,8 @@ struct CameraPanTransition: View {
             Rectangle()
                 .fill(Color.black)
                 .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .opacity(isActive ? 1.0 : 0.0)
                 .offset(
                     x: offsetX(for: direction, in: geometry, isActive: isActive),

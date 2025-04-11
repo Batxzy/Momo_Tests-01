@@ -20,13 +20,8 @@ struct ContentView: View {
             levelManager.currentLevel.content
                 .edgesIgnoringSafeArea(.all)
             
-            // Transition overlay - directly controlled by levelManager state
-            Group {
-                if levelManager.isTransitioning {
-                    transitionOverlay
-                        .zIndex(100) // Ensure it's above everything
-                }
-            }
+            // Always render the transition overlay but control its visibility
+            transitionOverlay
             
             // Debug overlay in top corner - can be removed in production
             VStack {
@@ -44,19 +39,23 @@ struct ContentView: View {
                         // Add buttons to test transitions directly
                         HStack {
                             Button("Test Fade") {
+                                print("Fade button pressed")
                                 levelManager.debugTriggerTransition(.fade)
                                 forceRefresh.toggle() // Force view update
                             }
                             .padding(4)
                             .background(Color.blue)
+                            .foregroundColor(.white)
                             .cornerRadius(4)
                             
                             Button("Test Pan") {
+                                print("Pan button pressed")
                                 levelManager.debugTriggerTransition(.cameraPan)
                                 forceRefresh.toggle() // Force view update
                             }
                             .padding(4)
                             .background(Color.green)
+                            .foregroundColor(.white)
                             .cornerRadius(4)
                             
                             Button("Force Refresh") {
@@ -64,6 +63,7 @@ struct ContentView: View {
                             }
                             .padding(4)
                             .background(Color.orange)
+                            .foregroundColor(.white)
                             .cornerRadius(4)
                         }
                     }
@@ -76,6 +76,7 @@ struct ContentView: View {
                 Spacer()
             }
             .padding(.top, 40)
+            .zIndex(200) // Keep debug controls on top
         }
         .id(forceRefresh) // Force full refresh when this changes
         .onChange(of: levelManager.updateCounter) { _, _ in
@@ -107,19 +108,20 @@ struct ContentView: View {
     }
     
     private var transitionOverlay: some View {
-        Group {
-            if let transitionType = levelManager.transitionType {
-                switch transitionType {
+        ZStack {
+            // Only show one transition at a time based on the current transition type
+            if let type = levelManager.transitionType {
+                switch type {
                 case .fade:
-                    FadeTransition(isActive: true)
+                    FadeTransition(isActive: levelManager.isTransitioning)
+                        .zIndex(100)
                 case .cameraPan:
-                    CameraPanTransition(isActive: true, direction: .trailing)
+                    CameraPanTransition(isActive: levelManager.isTransitioning, direction: .trailing)
+                        .zIndex(100)
                 }
-            } else {
-                Color.clear
-                    .opacity(0.001) // Nearly invisible but still exists
             }
         }
+        .zIndex(levelManager.isTransitioning ? 150 : 0)  // Only bring to front when active
     }
     
     private func createGameLevels() -> [Chapter] {
