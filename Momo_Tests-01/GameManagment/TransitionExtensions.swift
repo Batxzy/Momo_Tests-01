@@ -6,20 +6,21 @@ extension AnyTransition {
         .opacity
     }
     
-    static func cameraPan(edge: Edge) -> AnyTransition {
+    // Improved camera pan that properly shows both views during transition
+    static func cameraPan(edge: Edge = .leading) -> AnyTransition {
         .asymmetric(
-            insertion: .opacity.combined(with: .move(edge: edge)),
-            removal: .opacity.combined(with: .move(edge: edge))
+            insertion: .move(edge: edge),
+            removal: .move(edge: edge == .leading ? .trailing : .leading)
         )
     }
     
-    // Convert our enum to SwiftUI's native transitions with fade
-    static func fromLevelTransition(_ transition: LevelTransition, edge: Edge = .trailing) -> AnyTransition {
+    // Convert our enum to SwiftUI's native transitions
+    static func fromLevelTransition(_ transition: LevelTransition) -> AnyTransition {
         switch transition {
         case .fade:
             return .opacity
         case .cameraPan:
-            return .cameraPan(edge: edge)
+            return .cameraPan(edge: .leading) // Always come in from left side
         }
     }
 }

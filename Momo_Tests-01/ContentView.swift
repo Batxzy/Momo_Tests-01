@@ -18,9 +18,22 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Current level content - always present but conditionally visible
-            currentLevelView
-                .zIndex(1)
+            // Current level content with proper animation and ID
+            levelManager.currentLevel.content
+                .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(transitionId)")
+                .transition(
+                    AnyTransition.fromLevelTransition(
+                        levelManager.currentLevel.transition
+                    )
+                )
+                .animation(
+                    Animation.fromLevelTransition(levelManager.currentLevel.transition), 
+                    value: levelManager.currentLevelIndex
+                )
+                .animation(
+                    .spring(response: 0.8, dampingFraction: 0.7), 
+                    value: levelManager.currentChapterIndex
+                )
             
             // Debug overlay
             debugOverlay
@@ -58,24 +71,6 @@ struct ContentView: View {
                 }
             }
         }
-    }
-    
-    private var currentLevelView: some View {
-        levelManager.currentLevel.content
-            .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)")
-            .transition(
-                AnyTransition.fromLevelTransition(
-                    levelManager.currentLevel.transition
-                )
-            )
-            .animation(
-                Animation.fromLevelTransition(levelManager.currentLevel.transition), 
-                value: levelManager.currentLevelIndex
-            )
-            .animation(
-                .spring(response: 0.8, dampingFraction: 0.7), 
-                value: levelManager.currentChapterIndex
-            )
     }
     
     private var debugOverlay: some View {

@@ -44,19 +44,25 @@ class LevelManager {
         let nextLevelIndex = (currentLevelIndex < currentChapter.levels.count - 1) ? 
                              currentLevelIndex + 1 : 0
         
-        // Signal transition start
-        isTransitioning = true
+        // Important: First set the transition type BEFORE setting isTransitioning
         transitionType = type
         updateCounter += 1
         
-        // Use slightly longer delay for spring animations
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            // Change to next level
-            self.currentLevelIndex = nextLevelIndex
-            self.updateCounter += 1
+        // Use SwiftUI animation system more directly - trigger the animation 
+        // after a tiny delay to ensure state is ready
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                // Signal transition start
+                self.isTransitioning = true
+                self.updateCounter += 1
+                
+                // Change level immediately after starting transition
+                // SwiftUI's transition system will handle the visual effect
+                self.currentLevelIndex = nextLevelIndex
+            }
             
-            // Longer delay for spring animation to complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            // After transition completes - reset state
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 self.isTransitioning = false
                 self.transitionType = nil
                 self.updateCounter += 1
@@ -74,30 +80,34 @@ class LevelManager {
         }
         
         chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
+        
+        // Retain current transition style before changing state
         let transitionStyle = currentLevel.transition
+        // Set transition type first
+        self.transitionType = transitionStyle
+        self.updateCounter += 1
         
-        // Signal transition start
-        isTransitioning = true
-        transitionType = transitionStyle
-        updateCounter += 1
-        
-        // Slightly longer delay to let spring animation start
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            // Move to appropriate next level or chapter
-            if self.hasNextLevelInCurrentChapter {
-                self.currentLevelIndex += 1
-            } else if self.hasNextChapter {
-                self.chapters[self.currentChapterIndex + 1].isUnlocked = true
-                self.currentChapterIndex += 1
-                self.currentLevelIndex = 0
-            } else {
-                self.handleGameCompletion()
+        // Use SwiftUI animation system more directly
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                // Start transition
+                self.isTransitioning = true
+                
+                // Determine destination during the transition
+                if self.hasNextLevelInCurrentChapter {
+                    self.currentLevelIndex += 1
+                } else if self.hasNextChapter {
+                    self.chapters[self.currentChapterIndex + 1].isUnlocked = true
+                    self.currentChapterIndex += 1  
+                    self.currentLevelIndex = 0
+                } else {
+                    self.handleGameCompletion()
+                }
+                self.updateCounter += 1
             }
             
-            self.updateCounter += 1
-            
-            // Longer delay for spring animation to complete
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            // Reset transition state after animation completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 self.isTransitioning = false
                 self.transitionType = nil
                 self.updateCounter += 1
