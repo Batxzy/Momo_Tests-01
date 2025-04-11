@@ -4,6 +4,8 @@ struct ContentView: View {
     @State private var levelManager: LevelManager
     @State private var minigameCompleted: String? = nil
     @State private var debugMessage: String = ""
+    @State private var scrollPosition: String? = nil
+    @State private var isUserScrolling: Bool = false
     
     init() {
         _levelManager = State(initialValue: LevelManager(chapters: []))
@@ -14,25 +16,32 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Simplified carousel content
-                levelManager.currentLevel.content
-                    .frame(width: geometry.size.width * 0.9, height: geometry.size.height)
-                    .id("level-\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)")
-                    .transition(
-                        AnyTransition.fromLevelTransition(
-                            levelManager.currentLevel.transition,
-                            direction: levelManager.transitionDirection
-                        )
-                    )
-                    .animation(
-                        .spring(response: 0.7, dampingFraction: 0.8), 
-                        value: levelManager.currentLevelIndex
-                    )
-                    .frame(maxWidth: .infinity) // Center in parent
+                // Scrollable carousel with previews
+                ScrollViewCarousel(
+                    levelManager: levelManager,
+                    geometry: geometry,
+                    scrollPosition: $scrollPosition,
+                    isScrolling: $isUserScrolling,
+                    onLevelSelected: { index in
+                        if index != levelManager.currentLevelIndex {
+                            // User scrolled to a different level
+                            levelManager.transitionDirection = index > levelManager.currentLevelIndex ? .next : .previous
+                            levelManager.currentLevelIndex = index
+                            levelManager.updateCounter += 1
+                        }
+                    }
+                )
+                .zIndex(1)
                 
                 // Debug overlay
                 debugOverlay
                     .zIndex(10)
+            }
+            .onChange(of: levelManager.currentLevelIndex) { _, newIndex in
+                // When level changes programmatically, scroll to that position
+                if !isUserScrolling {
+                    scrollPosition = "level-\(levelManager.currentChapterIndex)-\(newIndex)"
+                }
             }
             .onChange(of: levelManager.updateCounter) { _, _ in
                 // This will be triggered whenever the levels change
@@ -150,6 +159,109 @@ struct ContentView: View {
         )
         
         return [chapter1]
+    }
+}
+
+// LazyScrollView-based carousel component
+struct ScrollViewCarousel: View {
+    @ObservedObject var levelManager: LevelManager
+    let geometry: GeometryProxy
+    @Binding var scrollPosition: String?
+    @Binding var isScrolling: Bool
+    var onLevelSelected: (Int) -> Void
+    
+    var body: some View {
+        // Outer container to handle positioning
+        ZStack {
+            // Main carousel
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 40) {
+                    // Add spacer at the beginning to center the first item
+                    Spacer()
+                        .frame(width: geometry.size.width * 0.1)
+                    
+                    // Generate all levels in the current chapter
+                    ForEach(0..<levelManager.currentChapter.levels.count, id: \.self) { index in
+                        let level = levelManager.currentChapter.levels[index]
+                        let isCurrentLevel = index == levelManager.currentLevelIndex
+                        
+                        // Individual level view
+                        level.content
+                            .padding(20)
+                            .background(Color.white)
+                            .frame(width: geometry.size.width * 0.8, height: geometry.size.height * 0.9)
+                            .id("level-\(levelManager.currentChapterIndex)-\(index)")
+                            .scaleEffect(isCurrentLevel ? 1.0 : 0.9)
+                    }
+                    
+                    // Add spacer at the end to center the last item
+                    Spacer()
+                        .frame(width: geometry.size.width * 0.1)
+                }
+                .scrollTargetLayout()
+            }
+            .scrollPosition(id: $scrollPosition)
+            .scrollTargetBehavior(.viewAligned)
+            .scrollIndicators(.hidden)
+            // Track when user is scrolling vs. programmatic scrolling
+            .onScrollViewDidScroll { _ in
+                isScrolling = true
+            }
+            .onScrollViewDidEndDragging { point in
+                // When user finishes scrolling, find which element they stopped on
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isScrolling = false
+                    
+                    // Figure out which level we're positioned at
+                    if let positionId = scrollPosition,
+                       positionId.hasPrefix("level-\(levelManager.currentChapterIndex)-") {
+                        let components = positionId.components(separatedBy: "-")
+                        if components.count >= 3, let index = Int(components[2]) {
+                            onLevelSelected(index)
+                        }
+                    }
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: scrollPosition)
+        }
+    }
+}
+
+// Extension for scrolling events
+extension View {
+    func onScrollViewDidScroll(_ action: @escaping (CGPoint) -> Void) -> some View {
+        self.background(
+            GeometryReader { geo in
+                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
+                                     y: -geo.frame(in: .named("scroll")).minY)
+                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
+            }
+        )
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+            action(value)
+        }
+    }
+    
+    func onScrollViewDidEndDragging(_ action: @escaping (CGPoint) -> Void) -> some View {
+        self.background(
+            GeometryReader { geo in
+                let offset = CGPoint(x: -geo.frame(in: .named("scroll")).minX,
+                                     y: -geo.frame(in: .named("scroll")).minY)
+                Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: offset)
+            }
+        )
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+            action(value)
+        }
+    }
+}
+
+// Preference key for tracking scroll position
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGPoint = .zero
+    
+    static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) {
+        value = nextValue()
     }
 }
 
