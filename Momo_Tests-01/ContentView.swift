@@ -20,8 +20,23 @@ struct ContentView: View {
             levelManager.currentLevel.content
                 .edgesIgnoringSafeArea(.all)
             
-            // Always render the transition overlay but control its visibility
-            transitionOverlay
+            // Separate overlay for transitions
+            if levelManager.isTransitioning {
+                if let type = levelManager.transitionType {
+                    switch type {
+                    case .fade:
+                        FadeTransition(isActive: true)
+                            .transition(.opacity)
+                            .zIndex(1000)
+                            .animation(.easeInOut(duration: 0.5), value: levelManager.isTransitioning)
+                    case .cameraPan:
+                        CameraPanTransition(isActive: true, direction: .trailing)
+                            .transition(.opacity)
+                            .zIndex(1000)
+                            .animation(.easeInOut(duration: 0.8), value: levelManager.isTransitioning)
+                    }
+                }
+            }
             
             // Debug overlay in top corner - can be removed in production
             VStack {
@@ -105,23 +120,6 @@ struct ContentView: View {
                 }
             }
         }
-    }
-    
-    private var transitionOverlay: some View {
-        ZStack {
-            // Only show one transition at a time based on the current transition type
-            if let type = levelManager.transitionType {
-                switch type {
-                case .fade:
-                    FadeTransition(isActive: levelManager.isTransitioning)
-                        .zIndex(100)
-                case .cameraPan:
-                    CameraPanTransition(isActive: levelManager.isTransitioning, direction: .trailing)
-                        .zIndex(100)
-                }
-            }
-        }
-        .zIndex(levelManager.isTransitioning ? 150 : 0)  // Only bring to front when active
     }
     
     private func createGameLevels() -> [Chapter] {

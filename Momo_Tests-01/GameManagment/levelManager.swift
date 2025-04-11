@@ -60,21 +60,40 @@ class LevelManager {
     func debugTriggerTransition(_ type: LevelTransition) {
         print("DEBUG: Manually triggering \(type) transition")
         
-        // Direct state changes - bypasses the normal flow for testing
+        // Make it more obvious
         DispatchQueue.main.async {
-            // First update the state
-            self.isTransitioning = true
-            self.transitionType = type
-            self.updateCounter += 1 // Force refresh of observers
+            // Reset state first to ensure clean start
+            self.isTransitioning = false
+            self.transitionType = nil
+            self.updateCounter += 1
             
-            print("Set transition state: TRUE, type: \(type)")
-            
-            // Let it display for 1.5 seconds for testing purposes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                self.isTransitioning = false
-                self.transitionType = nil
-                self.updateCounter += 1 // Force refresh
-                print("Test transition complete, resetting state")
+            // Very small delay to ensure reset takes effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Start transition
+                self.isTransitioning = true
+                self.transitionType = type
+                self.updateCounter += 1
+                
+                print("DEBUG TRANSITION: Started \(type)")
+                
+                // Show transition for 2 seconds then hide
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.isTransitioning = false 
+                    self.updateCounter += 1
+                    
+                    print("DEBUG TRANSITION: Ended")
+                    
+                    // Change something visible in the UI to show transition worked
+                    if !self.chapters.isEmpty && !self.currentChapter.levels.isEmpty {
+                        if self.currentLevelIndex < self.currentChapter.levels.count - 1 {
+                            self.currentLevelIndex += 1
+                        } else {
+                            self.currentLevelIndex = 0
+                        }
+                        self.updateCounter += 1
+                        print("DEBUG: Changed level after transition")
+                    }
+                }
             }
         }
     }
