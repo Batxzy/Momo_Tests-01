@@ -16,7 +16,7 @@ class LevelManager {
     var isTransitioning: Bool = false
     var transitionType: LevelTransition?
     var transitionDirection: TransitionDirection = .next
-    var itemSpacing: CGFloat = 10 // Reduced spacing to make the carousel more compact
+    var itemSpacing: CGFloat = 80 // Increased spacing between carousel items
     
     // For update tracking
     var lastActionLog: String = ""

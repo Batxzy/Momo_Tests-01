@@ -6,27 +6,26 @@ extension AnyTransition {
         .opacity
     }
     
-    // Enhanced carousel-style pan that maintains visibility of adjacent views
-    static func carouselPan(edge: Edge = .leading, spacing: CGFloat = 40) -> AnyTransition {
-        // Calculate offsets for a more natural carousel feeling
+    // Simplified carousel pan with more spacing
+    static func carouselPan(edge: Edge = .leading) -> AnyTransition {
+        // Calculate offsets for a more natural carousel feeling with greater spacing
         let screenWidth = UIScreen.main.bounds.width
-        let insertionOffset = edge == .leading ? screenWidth * 0.6 : -screenWidth * 0.6
-        let removalOffset = edge == .leading ? -screenWidth * 0.6 : screenWidth * 0.6
+        let spacing: CGFloat = 80 // Large spacing between carousel items
+        
+        // Create offsets that make views slide in/out with space between them
+        let insertionOffset = edge == .leading ? screenWidth + spacing : -(screenWidth + spacing)
+        let removalOffset = edge == .leading ? -(screenWidth + spacing) : screenWidth + spacing
         
         return .asymmetric(
-            insertion: AnyTransition
-                .offset(x: insertionOffset, y: 0)
-                .combined(with: .opacity)
-                .combined(with: .scale(scale: 0.9, anchor: .center)),
+            insertion: AnyTransition.offset(x: insertionOffset, y: 0)
+                .combined(with: .opacity),
                 
-            removal: AnyTransition
-                .offset(x: removalOffset, y: 0)
+            removal: AnyTransition.offset(x: removalOffset, y: 0)
                 .combined(with: .opacity)
-                .combined(with: .scale(scale: 0.9, anchor: .center))
         )
     }
     
-    // Convert our enum to SwiftUI's native transitions, with direction awareness
+    // Convert our enum to SwiftUI's native transitions
     static func fromLevelTransition(_ transition: LevelTransition, direction: LevelManager.TransitionDirection = .next) -> AnyTransition {
         switch transition {
         case .fade:
