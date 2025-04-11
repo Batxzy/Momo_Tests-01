@@ -19,6 +19,10 @@ struct DustRemoverView2: View {
     //para guardar cuantas celdas hay en realidad
     @State private var totalCells: Int = 0
     
+    let completionThreshold: CGFloat
+    var onThresholdReached: (() -> Void)?
+    @State private var hasTriggeredCompletion: Bool = false
+    
     // Configuration
     private let scratchRadius: CGFloat = 25
     private let gridScale: CGFloat = 8.0  // Each grid cell represents 8x8 pixels
@@ -124,10 +128,18 @@ struct DustRemoverView2: View {
     }
     
     private var erasedPercentage: CGFloat {
-        guard totalCells > 0 else { return 0 }
-        return min(100, (CGFloat(erasedCells) / CGFloat(totalCells)) * 100)
-    }
-    
+            guard totalCells > 0 else { return 0 }
+            let percentage = min(100, (CGFloat(erasedCells) / CGFloat(totalCells)) * 100)
+            
+            // Check if we've reached the threshold and haven't triggered the callback yet
+            if percentage >= completionThreshold && !hasTriggeredCompletion {
+                hasTriggeredCompletion = true
+                onThresholdReached?()
+            }
+            
+            return percentage
+        }
+    // MARK: -View
     var body: some View {
            VStack(spacing: -25) {
                // Main scratch area and images
@@ -230,7 +242,7 @@ struct DustRemoverSwiftUIView_Previews2: PreviewProvider {
     static var previews: some View {
         DustRemoverView2(
             backgroundImage: Image("rectangle33"),
-            foregroundImage: Image("rectangle35")
+            foregroundImage: Image("rectangle35"), completionThreshold: 80
         )
     }
 }
