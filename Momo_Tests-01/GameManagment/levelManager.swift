@@ -19,6 +19,9 @@ class LevelManager {
     // Add debug state to track what's happening
     var lastActionLog: String = ""
     
+    // Add a direct trigger for UI updates
+    var updateCounter: Int = 0
+    
     var currentChapter: Chapter {
         chapters[currentChapterIndex]
     }
@@ -38,7 +41,6 @@ class LevelManager {
     private func handleGameCompletion() {
         print("All chapters and levels completed!")
         lastActionLog = "Game completed!"
-        // Trigger completion animation or navigate to end-game screen
     }
     
     init(chapters: [Chapter]) {
@@ -51,6 +53,15 @@ class LevelManager {
             var updatedChapters = chapters
             updatedChapters[0].isUnlocked = true
             self.chapters = updatedChapters
+        }
+    }
+    
+    // For debugging purposes - directly trigger transitions
+    func debugTriggerTransition(_ type: LevelTransition) {
+        print("DEBUG: Manually triggering \(type) transition")
+        startTransition(transition: type) {
+            // Do nothing in completion
+            print("DEBUG: Transition midpoint reached")
         }
     }
     
@@ -108,34 +119,33 @@ class LevelManager {
     
     private func startTransition(transition: LevelTransition, completion: @escaping () -> Void) {
         print("⭐ STARTING TRANSITION: \(transition)")
-        // Set these on the main thread immediately
+        
+        // Force update on main thread
         DispatchQueue.main.async {
+            // First update the state
             self.isTransitioning = true
             self.transitionType = transition
-            print("Set transitioning to TRUE, type: \(String(describing: self.transitionType))")
-        }
-        
-        // Schedule the completion to happen after the transition duration
-        Task {
-            // Phase 1: Wait for transition entrance animation to finish
-            try? await Task.sleep(for: .seconds(transition.duration * 0.5))
+            self.updateCounter += 1 // Force refresh of observers
             
-            await MainActor.run {
-                // Phase 2: Apply state changes at transition midpoint
+            print("Set transition state: TRUE, type: \(String(describing: self.transitionType))")
+            
+            // Handle transition timing
+            let duration = transition.duration
+            
+            // Phase 2: Midpoint - apply the completion callback
+            DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.5)) {
+                // Apply state changes at transition midpoint
                 completion()
+                self.updateCounter += 1 // Force refresh
                 print("Transition midpoint reached, applying completion")
                 
-                // Phase 3: Finish transition with slight delay
-                Task {
-                    // Give more time for the exit animation
-                    try? await Task.sleep(for: .seconds(transition.duration * 0.6))
-                    
-                    await MainActor.run {
-                        // Reset transition state
-                        self.isTransitioning = false
-                        self.transitionType = nil
-                        print("Reset transitioning to FALSE")
-                    }
+                // Phase 3: Finish transition
+                DispatchQueue.main.asyncAfter(deadline: .now() + (duration * 0.6)) {
+                    // Reset transition state
+                    self.isTransitioning = false
+                    self.transitionType = nil
+                    self.updateCounter += 1 // Force refresh
+                    print("Transition complete, resetting state")
                 }
             }
         }
@@ -143,10 +153,8 @@ class LevelManager {
     
     func checkWinCondition(scrollPosition: ScrollPosition? = nil, minigameCompleted: String? = nil) -> Bool {
         switch currentLevel.winCondition {
-            
         case .completeMinigame(let id):
             return minigameCompleted == id
-            
         case .custom(let condition):
             return condition()
         }

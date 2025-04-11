@@ -3,13 +3,13 @@ import SwiftUI
 struct ContentView: View {
     @State private var levelManager: LevelManager
     @State private var minigameCompleted: String? = nil
-    
-    // Add debug state to track what's happening
     @State private var debugMessage: String = ""
+    
+    // Force view updates when transitions change
+    @State private var forceRefresh: Bool = false 
     
     init() {
         _levelManager = State(initialValue: LevelManager(chapters: []))
-        
         let chapters = createGameLevels()
         _levelManager = State(initialValue: LevelManager(chapters: chapters))
     }
@@ -20,10 +20,11 @@ struct ContentView: View {
             levelManager.currentLevel.content
                 .edgesIgnoringSafeArea(.all)
             
-            // Transition overlay - must be always in view hierarchy for state changes to work
+            // Transition overlay - directly controlled by levelManager state
             Group {
                 if levelManager.isTransitioning {
                     transitionOverlay
+                        .zIndex(100) // Ensure it's above everything
                 }
             }
             
@@ -37,6 +38,34 @@ struct ContentView: View {
                             .font(.caption)
                         Text("Type: \(levelManager.transitionType?.debugDescription ?? "none")")
                             .font(.caption)
+                        Text("Update counter: \(levelManager.updateCounter)")
+                            .font(.caption)
+                        
+                        // Add buttons to test transitions directly
+                        HStack {
+                            Button("Test Fade") {
+                                levelManager.debugTriggerTransition(.fade)
+                                forceRefresh.toggle() // Force view update
+                            }
+                            .padding(4)
+                            .background(Color.blue)
+                            .cornerRadius(4)
+                            
+                            Button("Test Pan") {
+                                levelManager.debugTriggerTransition(.cameraPan)
+                                forceRefresh.toggle() // Force view update
+                            }
+                            .padding(4)
+                            .background(Color.green)
+                            .cornerRadius(4)
+                            
+                            Button("Force Refresh") {
+                                forceRefresh.toggle() // Force view update
+                            }
+                            .padding(4)
+                            .background(Color.orange)
+                            .cornerRadius(4)
+                        }
                     }
                     .padding(8)
                     .background(Color.black.opacity(0.7))
@@ -48,7 +77,12 @@ struct ContentView: View {
             }
             .padding(.top, 40)
         }
-        .onChange(of: minigameCompleted) { old, newValue in
+        .id(forceRefresh) // Force full refresh when this changes
+        .onChange(of: levelManager.updateCounter) { _, _ in
+            // Force refresh when the levelManager indicates it's needed
+            forceRefresh.toggle()
+        }
+        .onChange(of: minigameCompleted) { _, newValue in
             if let completedId = newValue {
                 debugMessage = "Checking: \(completedId)"
                 
@@ -65,6 +99,7 @@ struct ContentView: View {
                     // Small delay to ensure UI updates properly
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         levelManager.completeCurrentLevel()
+                        forceRefresh.toggle() // Force refresh
                     }
                 }
             }
@@ -73,15 +108,16 @@ struct ContentView: View {
     
     private var transitionOverlay: some View {
         Group {
-            switch levelManager.transitionType {
-            case .fade:
-                FadeTransition(isActive: true)
-                    .zIndex(100) // Ensure it's above everything else
-            case .cameraPan:
-                CameraPanTransition(isActive: true, direction: .trailing)
-                    .zIndex(100) // Ensure it's above everything else
-            case .none:
-                Color.clear // Empty but still in hierarchy
+            if let transitionType = levelManager.transitionType {
+                switch transitionType {
+                case .fade:
+                    FadeTransition(isActive: true)
+                case .cameraPan:
+                    CameraPanTransition(isActive: true, direction: .trailing)
+                }
+            } else {
+                Color.clear
+                    .opacity(0.001) // Nearly invisible but still exists
             }
         }
     }
@@ -95,6 +131,7 @@ struct ContentView: View {
                     debugMessage = "Circles completed!"
                     print("⭐ CIRCLES GAME COMPLETED!")
                     minigameCompleted = "circles"
+                    forceRefresh.toggle() // Force refresh
                 })
             ),
             transition: .fade,
@@ -113,6 +150,7 @@ struct ContentView: View {
                         debugMessage = "Dust threshold reached!"
                         print("⭐ DUST REMOVAL THRESHOLD REACHED!")
                         minigameCompleted = "dust"
+                        forceRefresh.toggle() // Force refresh
                     }
                 )
             ),
