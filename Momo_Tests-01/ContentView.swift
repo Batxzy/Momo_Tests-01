@@ -1,7 +1,19 @@
 import SwiftUI
 
+private struct LevelManagerKey: EnvironmentKey {
+    static let defaultValue: LevelManager = LevelManager(chapters: [])
+}
+
+extension EnvironmentValues {
+    var levelManager: LevelManager {
+        get { self[LevelManagerKey.self] }
+        set { self[LevelManagerKey.self] = newValue }
+    }
+}
+
 struct GameContainer: View {
     @State private var levelManager = LevelManager(chapters: [])
+    
     
     init() {
         // Define sample chapters and levels
@@ -14,7 +26,7 @@ struct GameContainer: View {
                         id: UUID(),
                         name: "Tap Game",
                         content: AnyView(TapProgressView()),
-                        transition: .fade,
+                        transition: .cameraPan,
                         winCondition: .custom({ false }),
                         isCompleted: false
                     ),
@@ -45,33 +57,8 @@ struct GameContainer: View {
         
         // Initialize with sample data
         _levelManager = State(initialValue: LevelManager(chapters: sampleChapters))
-    }
-    
-    var body: some View {
-        ZStack {
-            // Current level content
-            levelManager.currentLevel.content
-                .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
-                .transition(getTransition(for: levelManager.currentLevel.transition))
-            
-            // Debug controls (optional - remove for production)
-            VStack {
-                Spacer()
-                HStack {
-                    Button("Next Level") {
-                        withAnimation(.easeInOut(duration: levelManager.currentLevel.transition.duration)) {
-                            levelManager.completeCurrentLevel()
-                        }
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .padding(.bottom, 20)
-            }
-        }
-        .environment(\.levelManager, levelManager)
-        .animation(.easeInOut(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
+        
+        
     }
     
     private func getTransition(for type: LevelTransition) -> AnyTransition {
@@ -85,19 +72,40 @@ struct GameContainer: View {
             )
         }
     }
+    
+    
+    var body: some View {
+        ZStack {
+            // Current level content
+            levelManager.currentLevel.content
+                .transition(getTransition(for: levelManager.currentLevel.transition))
+            // este le sirve a swift para darse que index ha usado  swift ui
+                .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
+            
+            // Debug controls (optional - remove for production)
+            VStack {
+                Spacer()
+                HStack {
+                    Button("Next Level") {
+                        withAnimation(.easeInOut(duration: levelManager.currentLevel.transition.duration)) {
+                            levelManager.completeCurrentLevel()
+                            
+                            print("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
+                        }
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .padding(.bottom, 20)
+            }
+        }
+        .environment(\.levelManager, levelManager)
+        .animation(.easeInOut(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
+    }
 }
 
 // Environment key for level manager
-private struct LevelManagerKey: EnvironmentKey {
-    static let defaultValue: LevelManager = LevelManager(chapters: [])
-}
-
-extension EnvironmentValues {
-    var levelManager: LevelManager {
-        get { self[LevelManagerKey.self] }
-        set { self[LevelManagerKey.self] = newValue }
-    }
-}
 
 #Preview {
     GameContainer()

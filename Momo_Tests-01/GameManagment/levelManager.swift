@@ -12,7 +12,6 @@ import SwiftUI
     var chapters: [Chapter]
     var currentChapterIndex: Int
     var currentLevelIndex: Int
-    var isTransitioning: Bool = false
     var transitionType: LevelTransition?
     var itemSpacing: CGFloat = 40 // Spacing between carousel items
     
@@ -43,14 +42,14 @@ import SwiftUI
         lastActionLog = "Completing level: \(currentLevel.name)"
         print("Completing level: \(currentLevel.name)")
 
+        //para si el index ta mal
         guard currentLevelIndex < chapters[currentChapterIndex].levels.count else {
             return
         }
         
+        // completa el nivel
         chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
         
-        isTransitioning = true
-                
         // Update level/chapter immediately - transition is handled by SwiftUI 
         if hasNextLevelInCurrentChapter {
             currentLevelIndex += 1

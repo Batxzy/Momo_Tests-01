@@ -58,6 +58,7 @@ struct RedRectangleView: View {
         }
     }
 }
+
 struct Test_Transition: View {
         @State private var showGreenView = true
         
@@ -87,10 +88,7 @@ struct ViewPagerContainer<Content: View>: View {
     // Array of your existing views
     let views: [Content]
     @State private var currentIndex = 0
-    
-    init(views: [Content]) {
-        self.views = views
-    }
+
     
     var body: some View {
         ZStack {
