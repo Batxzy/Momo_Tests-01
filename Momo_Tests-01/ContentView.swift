@@ -36,7 +36,7 @@ struct GameContainer: View {
                         content: AnyView(DustRemoverView2(
                             backgroundImage: Image("rectangle33"),
                             foregroundImage: Image("rectangle35"),
-                            completionThreshold: 0.9)
+                            completionThreshold: 90.0)
                         ),
                         transition: .cameraPan,
                         winCondition: .custom({ false }),
@@ -82,23 +82,7 @@ struct GameContainer: View {
             // este le sirve a swift para darse que index ha usado  swift ui
                 .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
             
-            // Debug controls (optional - remove for production)
-            VStack {
-                Spacer()
-                HStack {
-                    Button("Next Level") {
-                        withAnimation(.easeInOut(duration: levelManager.currentLevel.transition.duration)) {
-                            levelManager.completeCurrentLevel()
-                            
-                            print("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
-                        }
-                    }
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .padding(.bottom, 20)
-            }
+
         }
         .environment(\.levelManager, levelManager)
         .animation(.easeInOut(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)

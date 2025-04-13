@@ -1,248 +1,240 @@
 import SwiftUI
 
 struct DustRemoverView2: View {
-// MARK: - PROPERTIES
-    
+    // MARK: - PROPERTIES
+    @Environment(\.levelManager) private var levelManager
+
     //imagenes a usar
     let backgroundImage: Image
     let foregroundImage: Image
-    
+
     // mantengo todas las cordenadas que han sido usdas cuando uso el scratch
     @State private var scratchPoints: [CGPoint] = []
-    
+
     //array de dos dimensiones
     @State private var erasedGrid: [[Bool]] = []
-    
+
     //guardar cuantas celdas han sido borradas
     @State private var erasedCells: Int = 0
-    
+
     //para guardar cuantas celdas hay en realidad
     @State private var totalCells: Int = 0
-    
+
     let completionThreshold: CGFloat
-    var onThresholdReached: (() -> Void)?
     @State private var hasTriggeredCompletion: Bool = false
-    
+
     // Configuration
-    private let scratchRadius: CGFloat = 25
-    private let gridScale: CGFloat = 8.0  // Each grid cell represents 8x8 pixels
-    
-    // For interpolation between points to ensure smooth visual effect
+    private let scratchRadius: CGFloat = 35
+    private let gridScale: CGFloat = 10.0
+    private let interpolationStep: CGFloat = 8.0
+
+    // For interpolation
     @State private var lastPoint: CGPoint?
-    
+
     // Using your exact dimensions
     private let backgroundWidth: CGFloat = 334
     private let backgroundHeight: CGFloat = 720
     private let foregroundWidth: CGFloat = 334
     private let foregroundHeight: CGFloat = 300
-    
-// MARK: -Funciones y codigo del gird
-    
-    // Initialize the downsampled grid
+
+    private var erasedPercentage: CGFloat {
+        guard totalCells > 0 else { return 0 }
+        return min(100.0, (CGFloat(erasedCells) / CGFloat(totalCells)) * 100.0)
+    }
+    // MARK: - Mask View Component
+    private var scratchMask: some View {
+        Canvas { context, size in
+            var path = Path()
+            for point in scratchPoints {
+                let rect = CGRect(
+                    x: point.x - scratchRadius,
+                    y: point.y - scratchRadius,
+                    width: scratchRadius * 2,
+                    height: scratchRadius * 2
+                )
+                path.addEllipse(in: rect)
+            }
+            context.fill(path, with: .color(.black))
+        }
+        .frame(width: foregroundWidth, height: foregroundHeight)
+    }
+
+    // MARK: - Drag Gesture Logic (Main Thread Only)
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { value in
+                guard !hasTriggeredCompletion else { return } // Stop processing if already complete
+
+                let location = value.location
+
+                // Update visual mask immediately
+                addScratchPoint(location)
+                interpolatePoints(from: lastPoint, to: location)
+                lastPoint = location
+
+                // --- Direct Main Thread Grid Update ---
+                updateGridAndCheckCompletion(at: location)
+            }
+            .onEnded { _ in
+                lastPoint = nil // Reset interpolation on gesture end
+            }
+    }
+
+    // MARK: -Funciones y codigo del gird (Helper Functions)
+
     private func initializeGrid() {
-        // Use fixed dimensions for grid
+        // Runs on Main Actor via .task
         let gridWidth = max(1, Int(ceil(foregroundWidth / gridScale)))
         let gridHeight = max(1, Int(ceil(foregroundHeight / gridScale)))
-        
-        // Create grid with at least 1x1 dimensions
+
         erasedGrid = Array(repeating: Array(repeating: false, count: gridHeight), count: gridWidth)
         totalCells = gridWidth * gridHeight
         erasedCells = 0
-        
-        print("Grid initialized: \(gridWidth) x \(gridHeight)")
+        hasTriggeredCompletion = false
+        scratchPoints = []
+        lastPoint = nil
     }
-    
-    private func updateErasedGrid(at point: CGPoint) {
-        // Safety check - make sure grid is initialized
-        guard !erasedGrid.isEmpty else {
-            print("Grid not initialized yet")
-            return
+
+    private func addScratchPoint(_ point: CGPoint) {
+         let boundedPoint = CGPoint(
+             x: max(0, min(point.x, foregroundWidth)),
+             y: max(0, min(point.y, foregroundHeight))
+         )
+        guard boundedPoint.x >= 0 && boundedPoint.y >= 0 else { return }
+        scratchPoints.append(boundedPoint)
+    }
+
+    private func interpolatePoints(from start: CGPoint?, to end: CGPoint) {
+        guard let start = start else { return }
+        let distance = hypot(end.x - start.x, end.y - start.y)
+        guard distance >= interpolationStep else { return }
+
+        let pointsNeeded = Int(distance / interpolationStep)
+        guard pointsNeeded > 1 else { return }
+
+        for i in 1..<pointsNeeded {
+            let fraction = CGFloat(i) / CGFloat(pointsNeeded)
+            let interpolatedPoint = CGPoint(
+                x: start.x + (end.x - start.x) * fraction,
+                y: start.y + (end.y - start.y) * fraction
+            )
+             let boundedInterpolatedPoint = CGPoint(
+                 x: max(0, min(interpolatedPoint.x, foregroundWidth)),
+                 y: max(0, min(interpolatedPoint.y, foregroundHeight))
+             )
+             if boundedInterpolatedPoint.x >= 0 && boundedInterpolatedPoint.y >= 0 {
+                  scratchPoints.append(boundedInterpolatedPoint)
+             }
         }
-        
-        // IMPORTANT: Contain the point within the image bounds
+    }
+
+    // MARK: - Combined Grid Update and Completion Check (Main Thread)
+
+    // Updates grid state directly and checks completion
+    private func updateGridAndCheckCompletion(at point: CGPoint) {
+        guard !erasedGrid.isEmpty, totalCells > 0, !hasTriggeredCompletion else { return }
+
         let boundedPoint = CGPoint(
             x: max(0, min(point.x, foregroundWidth)),
             y: max(0, min(point.y, foregroundHeight))
         )
-        
-        // Skip processing if point is out of bounds
-        guard boundedPoint.x >= 0 && boundedPoint.y >= 0 &&
-              boundedPoint.x <= foregroundWidth && boundedPoint.y <= foregroundHeight else {
-            print("Point out of bounds: \(point)")
-            return
-        }
-        
-        // Convert to grid coordinates using the bounded point
+
         let gridX = Int(boundedPoint.x / gridScale)
         let gridY = Int(boundedPoint.y / gridScale)
-        
-        // Calculate grid radius
         let gridRadius = Int(ceil(scratchRadius / gridScale))
-        
-        // Get grid dimensions
         let gridWidth = erasedGrid.count
         let gridHeight = erasedGrid.first?.count ?? 0
-        
-        // Skip processing if grid coordinates are invalid
-        guard gridX >= 0 && gridY >= 0 && gridX < gridWidth && gridY < gridHeight else {
-            print("Grid coordinates out of bounds: (\(gridX), \(gridY))")
+
+        guard gridX >= 0, gridY >= 0, gridX < gridWidth, gridY < gridHeight else {
             return
         }
-        
-        // Bounds for our grid search - with extra validation
+
         let minX = max(0, gridX - gridRadius)
         let maxX = min(gridWidth - 1, gridX + gridRadius)
         let minY = max(0, gridY - gridRadius)
         let maxY = min(gridHeight - 1, gridY + gridRadius)
-        
-        // Extra validation - ensure the ranges are valid
-        guard minX <= maxX && minY <= maxY else {
-            print("Invalid grid search range: X(\(minX)...\(maxX)), Y(\(minY)...\(maxY))")
-            return
-        }
-        
-        // Track new cells erased
-        var newlyErased = 0
-        
-        // Mark grid cells as erased - with thorough bounds checking
+
+        var cellsJustErased = 0
+
         for i in minX...maxX {
-            // Verify i is in bounds
-            guard i >= 0, i < gridWidth, i < erasedGrid.count else { continue }
-            
+            guard i >= 0, i < gridWidth else { continue } // Bounds check
             for j in minY...maxY {
-                // Verify j is in bounds for this row
-                guard j >= 0, j < gridHeight, j < erasedGrid[i].count else { continue }
-                
-                // Check if point is within the circle
-                let distance = sqrt(pow(Double(i - gridX), 2) + pow(Double(j - gridY), 2))
-                
-                if distance <= Double(gridRadius) && !erasedGrid[i][j] {
-                    erasedGrid[i][j] = true
-                    newlyErased += 1
+                 guard j >= 0, j < gridHeight else { continue } // Bounds check
+
+                let distanceSq = (i - gridX) * (i - gridX) + (j - gridY) * (j - gridY)
+                if distanceSq <= gridRadius * gridRadius {
+                     // Check and update grid state directly
+                     if !erasedGrid[i][j] {
+                        erasedGrid[i][j] = true
+                        cellsJustErased += 1
+                    }
                 }
             }
         }
-        
-        // Update the total (keeping the original threading code)
-        erasedCells += newlyErased
+
+        // Update total count and check completion only if needed
+        if cellsJustErased > 0 {
+            erasedCells += cellsJustErased
+            checkCompletion() // Check threshold now
+        }
+    }
+
+    // Checks completion threshold (Called from main thread)
+    private func checkCompletion() {
+        // Already checked !hasTriggeredCompletion in caller, but double-check is safe
+        guard !hasTriggeredCompletion, totalCells > 0 else { return }
+
+        let currentPercentage = (CGFloat(erasedCells) / CGFloat(totalCells)) * 100.0
+
+        if currentPercentage >= completionThreshold {
+            hasTriggeredCompletion = true
+             withAnimation(.easeInOut(duration: levelManager.currentLevel.transition.duration)) {
+                 levelManager.completeLevel()
+            }
+        }
     }
     
-    private var erasedPercentage: CGFloat {
-            guard totalCells > 0 else { return 0 }
-            let percentage = min(100, (CGFloat(erasedCells) / CGFloat(totalCells)) * 100)
-            
-            // Check if we've reached the threshold and haven't triggered the callback yet
-            if percentage >= completionThreshold && !hasTriggeredCompletion {
-                hasTriggeredCompletion = true
-                onThresholdReached?()
-            }
-            
-            return percentage
-        }
-// MARK: -View
+    // MARK: - View Body
     var body: some View {
-           VStack(spacing: -25) {
-               // Main scratch area and images
-               ZStack(alignment: .top) {
-                   // Background image - using your dimensions
-                   backgroundImage
-                       .resizable()
-                       .aspectRatio(contentMode: .fill)
-                       .frame(width: backgroundWidth, height: backgroundHeight)
-                       .clipped()
-                   
-                   // Foreground image - using your dimensions
-                   foregroundImage
-                       .resizable()
-                       .aspectRatio(contentMode: .fill)
-                       .frame(width: foregroundWidth, height: foregroundHeight)
-                       .clipped()
-                       .onAppear {
-                           initializeGrid()
-                       }
-                       .mask(
-                           Canvas { context, size in
-                               for point in scratchPoints {
-                                   let rect = CGRect(
-                                       x: point.x - scratchRadius,
-                                       y: point.y - scratchRadius,
-                                       width: scratchRadius * 2,
-                                       height: scratchRadius * 2
-                                   )
-                                   context.fill(Path(ellipseIn: rect), with: .color(.black))
-                               }
-                           }
-                       )
-                       .gesture(
-                           DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                               .onChanged { value in
-                                   let location = value.location
-                                   
-                                   // Only process if the gesture is within the bounds
-                                   guard location.x >= 0 && location.x <= foregroundWidth &&
-                                         location.y >= 0 && location.y <= foregroundHeight else {
-                                       return
-                                   }
-                                   
-                                   // Add the current point for visual effect
-                                   scratchPoints.append(location)
-                                   
-                                   // Interpolate points between current and last point for smooth erasing
-                                   if let last = lastPoint {
-                                       let distance = hypot(location.x - last.x, location.y - last.y)
-                                       let pointsNeeded = max(1, Int(distance / 5)) // Add points every 5 pts
-                                       
-                                       if pointsNeeded > 1 {
-                                           for i in 1..<pointsNeeded {
-                                               let fraction = CGFloat(i) / CGFloat(pointsNeeded)
-                                               let interpolatedPoint = CGPoint(
-                                                   x: last.x + (location.x - last.x) * fraction,
-                                                   y: last.y + (location.y - last.y) * fraction
-                                               )
-                                               scratchPoints.append(interpolatedPoint)
-                                           }
-                                       }
-                                   }
-                                   
-                                   // Update tracking grid (in background to maintain performance)
-                                   DispatchQueue.global(qos: .userInteractive).async {
-                                       self.updateErasedGrid(at: location)
-                                       
-                                       DispatchQueue.main.async {
-                                           // Just to trigger UI update for percentage
-                                           self.erasedCells = self.erasedCells
-                                       }
-                                   }
-                                   
-                                   lastPoint = location
-                               }
-                               .onEnded { _ in
-                                   lastPoint = nil
-                               }
-                       )
-               }
-               
-               // Percentage indicator with proper spacing
-               VStack() {
-                   Text("Erased: \(erasedPercentage, specifier: "%.1f")%")
-                       .padding()
-                       .background(Color.black)
-                       .foregroundColor(.white)
-                       .clipShape(Capsule())
-               }
-               .padding(.horizontal, 15)
-               .frame(width: backgroundWidth,alignment: .trailing)
-               
-               
-           }
-           .frame(width: .infinity, height: .infinity)
-       }
-   }
-struct DustRemoverSwiftUIView_Previews2: PreviewProvider {
-    static var previews: some View {
-        DustRemoverView2(
-            backgroundImage: Image("rectangle33"),
-            foregroundImage: Image("rectangle35"), completionThreshold: 80
-        )
+         VStack(spacing: -25) {
+            ZStack(alignment: .top) {
+                backgroundImage
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: backgroundWidth, height: backgroundHeight)
+                    .clipped()
+
+                foregroundImage
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: foregroundWidth, height: foregroundHeight)
+                    .clipped()
+                    .mask(scratchMask)
+                    .gesture(dragGesture)
+            }
+
+            VStack() {
+                Text("Erased: \(erasedPercentage, specifier: "%.1f")%")
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 15)
+            .frame(width: backgroundWidth, alignment: .trailing)
+        }
+        .task { // Use .task for initialization
+            initializeGrid()
+        }
     }
+
+   
+}
+
+// MARK: - Preview
+
+#Preview {
+    DustRemoverView2(backgroundImage: Image("rectangle33"), foregroundImage: Image("rectangle35"), completionThreshold: 100.0)
+    
+    
 }

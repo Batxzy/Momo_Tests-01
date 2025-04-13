@@ -95,10 +95,7 @@ struct TapProgressView: View {
         isComplete = true
         stopTimer()
         
-        // Use DispatchQueue instead of async/await since user prefers to avoid async
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            levelManager.completeCurrentLevel()
-        }
+        levelManager.completeLevel() 
     }
     
     private func startTimer() {

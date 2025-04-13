@@ -38,31 +38,34 @@ import SwiftUI
     
     
     // Regular level completion transitions
-    func completeCurrentLevel() {
-        lastActionLog = "Completing level: \(currentLevel.name)"
-        print("Completing level: \(currentLevel.name)")
+    func completeLevel() {
+            
+            if currentChapterIndex < chapters.count && currentLevelIndex < chapters[currentChapterIndex].levels.count {
+                
+                 chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
+            }
 
-        //para si el index ta mal
-        guard currentLevelIndex < chapters[currentChapterIndex].levels.count else {
-            return
+
+            if currentLevelIndex + 1 < chapters[currentChapterIndex].levels.count {
+                currentLevelIndex += 1
+            } else if currentChapterIndex + 1 < chapters.count {
+               
+                currentChapterIndex += 1
+                currentLevelIndex = 0
+                 if currentChapterIndex < chapters.count {
+                     chapters[currentChapterIndex].isUnlocked = true
+                 }
+            } else {
+              
+                print("All levels completed!")
+                // You might want to add state here to indicate game completion
+                return // Stop further updates if the game is over
+            }
+
+            // Increment the counter to trigger the transition in GameContainer
+            updateCounter += 1
+            print("Level completed. New state: Chapter \(currentChapterIndex), Level \(currentLevelIndex), UpdateCounter: \(updateCounter)")
         }
-        
-        // completa el nivel
-        chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
-        
-        // Update level/chapter immediately - transition is handled by SwiftUI 
-        if hasNextLevelInCurrentChapter {
-            currentLevelIndex += 1
-        } else if hasNextChapter {
-            chapters[currentChapterIndex + 1].isUnlocked = true
-            currentChapterIndex += 1
-            currentLevelIndex = 0
-        } else {
-            handleGameCompletion()
-        }
-        
-        updateCounter += 1
-    }
     
     private func handleGameCompletion() {
         print("All chapters and levels completed!")
