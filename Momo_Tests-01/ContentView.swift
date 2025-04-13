@@ -45,7 +45,7 @@ struct GameContainer: View {
                     Level(
                         id: UUID(),
                         name: "Drag Game",
-                        content: AnyView(DragProgressView()),
+                        content: AnyView(DragProgressView(swipeSensitivity: 8.0)),
                         transition: .fade,
                         winCondition: .custom({ false }),
                         isCompleted: false

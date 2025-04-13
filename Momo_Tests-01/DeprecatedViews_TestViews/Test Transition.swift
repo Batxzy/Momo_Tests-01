@@ -125,7 +125,7 @@ struct Test_ContentView: View {
     // Your existing views that you've already coded
     var body: some View {
         // Put your existing views in an array
-        let yourExistingViews: [AnyView] = [AnyView(TapProgressView()),AnyView(DustRemoverView2(backgroundImage: Image("rectangle35"), foregroundImage: Image("rectangle33"), completionThreshold: 80)),AnyView(DragProgressView())
+        let yourExistingViews: [AnyView] = [AnyView(TapProgressView()),AnyView(DustRemoverView2(backgroundImage: Image("rectangle35"), foregroundImage: Image("rectangle33"), completionThreshold: 80)),AnyView(DragProgressView(swipeSensitivity: 2.0))
         ]
         
         // Use the container with your views
