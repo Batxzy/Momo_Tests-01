@@ -29,6 +29,8 @@ struct GameContainer: View {
                         transition: .cameraPan,
                         isCompleted: false
                     ),
+                    Level(id: UUID(), name: "1_1", content: AnyView(ImageScrollView(images: Scroll_1_1)), transition: .cameraPan, isCompleted: false
+                         ),
                     Level(
                         id: UUID(),
                         name: "Dust Remover",
@@ -44,6 +46,13 @@ struct GameContainer: View {
                         id: UUID(),
                         name: "Drag Game",
                         content: AnyView(DragProgressView(swipeSensitivity: 8.0)),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    ),
+                    Level(
+                        id: UUID(),
+                        name: "Tapping",
+                        content: AnyView(CirclesView(ilustration:Image("Reason" ))),
                         transition: .cameraPan,
                         isCompleted: false
                     )
