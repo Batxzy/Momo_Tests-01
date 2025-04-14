@@ -11,6 +11,7 @@ struct ImageScrollView: View {
 
 //MARK: - variables y setup
     @Environment(\.levelManager) var levelManager
+    @State var didTap: Bool = false
     
     public var images: [Image]
     
@@ -39,7 +40,9 @@ struct ImageScrollView: View {
                         HStack {
                             Spacer()
                             Button {
-                                levelManager.completeLevel()
+                                guard !didTap else { return }
+                                        didTap = true
+                                        levelManager.completeLevel()
                             } label: {
                                 Text("Siguiente")
                                     .padding(15)

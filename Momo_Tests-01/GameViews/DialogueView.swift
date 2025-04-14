@@ -11,6 +11,7 @@ import SwiftUI
 struct DialogueView: View {
 
     @Environment(\.levelManager) var levelManager
+    @State var didTap: Bool = false
     
     var dialogueImage: Image
     var ilustration: Image
@@ -44,7 +45,9 @@ struct DialogueView: View {
                     .cornerRadius(20)
                     .clipped()
                     .onTapGesture {
-                        levelManager.completeLevel()
+                        guard !didTap else { return } // Check if already tapped
+                            didTap = true // Set tapped state to true
+                            levelManager.completeLevel()
                     }
             }
         }

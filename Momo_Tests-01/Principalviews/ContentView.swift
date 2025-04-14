@@ -25,7 +25,9 @@ struct ContentView: View {
                     Level(
                         id: UUID(),
                         name: "Tap Game",
-                        content: AnyView(TapProgressView(illustration: Image("rectangle33"))),
+                        content: AnyView(TapProgressView(
+                            illustration: Image("rectangle33"))
+                        ),
                         transition: .cameraPan,
                         isCompleted: false
                     ),
@@ -49,19 +51,26 @@ struct ContentView: View {
                     Level(
                         id: UUID(),
                         name: "Swipe Game",
-                        content: AnyView(ImageTap(iulstration: Image("rectangle33"))),
+                        content: AnyView(ImageTap(
+                            iulstration: Image("rectangle33"))
+                        ),
                         transition: .cameraPan,
                         isCompleted: false
                     ),
                     Level(id: UUID(),
                           name: "test_dialogue",
-                          content: AnyView(DialogueView(dialogueImage: Image("rectangle33"), ilustration: Image("Reason"))),
+                          content: AnyView(DialogueView(
+                                dialogueImage: Image("rectangle33"),
+                                ilustration: Image("Reason"))
+                          ),
                           transition: .cameraPan,
                           isCompleted: false),
                     Level(
                         id: UUID(),
                         name: "Drag Game",
-                        content: AnyView(DragProgressView(swipeSensitivity: 8.0)),
+                        content: AnyView(DragProgressView(
+                            swipeSensitivity: 8.0)
+                        ),
                         transition: .cameraPan,
                         isCompleted: false
                     ),

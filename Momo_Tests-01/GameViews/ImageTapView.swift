@@ -10,6 +10,7 @@ import SwiftUI
 struct ImageTap: View {
     //MARK: - variables y setup
         @Environment(\.levelManager) var levelManager
+        @State private var didTap :Bool  = false
         
         public var iulstration: Image
         
@@ -26,7 +27,9 @@ struct ImageTap: View {
                 .frame(width: ilustrationWidth, height: ilustrationHeight)
                 .clipped()
                 .onTapGesture {
-                    levelManager.completeLevel()
+                    guard !didTap else { return }
+                        didTap = true 
+                        levelManager.completeLevel()
                 }
         }
     }
