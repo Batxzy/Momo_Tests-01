@@ -15,22 +15,18 @@ enum LevelTransition {
     var duration: TimeInterval {
         switch self {
         case .fade: return 0.8  // Increased from 0.5
-        case .cameraPan: return 1.2  // Increased from 0.8
-        case .cameraPanF: return 1.2 
+        case .cameraPan: return 2  // Increased from 0.8
+        case .cameraPanF: return 2
         }
     }
 }
 
-enum WinCondition {
-    case completeMinigame(String)
-    case custom(() -> Bool) // Custom condition with closure
-}
+
 struct Level: Identifiable {
     let id: UUID
     let name: String
     let content: AnyView
     let transition: LevelTransition
-    let winCondition: WinCondition
     var isCompleted: Bool = false
 }
 

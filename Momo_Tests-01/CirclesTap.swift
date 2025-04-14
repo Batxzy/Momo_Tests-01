@@ -8,56 +8,76 @@
 import SwiftUI
 
 struct CirclesView: View {
-    // Track which circles have been tapped
-    @State private var circleTapped = [false, false, false, false]
-   
-    var onGameComplete: (() -> Void)?
+
+//MARK: - Variables y cosos del state
     
-    public var TapCompleted: Bool  {
-        for index in 0..<4{
-            if !circleTapped[index]{
-                return false
-            }
-        }
-        return true
-    }
+    @Environment(\.levelManager) var levelmanager
     
+    var ilustration: Image
+    
+    private let  ilustrationWidth: CGFloat = 320
+    
+    private let  ilustrationHeight: CGFloat = 720
+    
+    @State private var circleTapped : Array = [false,false,false,false]
+
     @State private var gameDone: Bool = false
     
-    var body: some View {
-        HStack(spacing: 20) {
-            ForEach(0..<4, id: \.self) { index in
-                Circle()
-                    .frame(width: 50, height: 50)
-                
+    private var areAllCirclesTapped: Bool {
+        !circleTapped.contains(false)
+    }
     
-                    .animation(.spring (response: 0.3, dampingFraction: 0.4)){
-                        $0.scaleEffect(circleTapped[index] ? 1.5 : 1.0)
-                    }
+    private func handleTap(at index: Int) {
+        guard !circleTapped[index] else { return }
+
+        circleTapped[index] = true
+
+        if areAllCirclesTapped {
+            print("All circles tapped!")
+            // Perform completion action here (e.g., update a binding, call a closure)
+        }
+    }
+//MARK: - View
+    var body: some View {
+        VStack (spacing: -150){
+            ilustration
+               .resizable()
+               .scaledToFill()
+               .frame(width: ilustrationWidth, height: ilustrationHeight)
+               .clipped()
+            
+            HStack(spacing: 20) {
+                ForEach(0..<4, id: \.self) { index in
+                    Circle()
+                        .frame(width: 50, height: 50)
                     
-                
-                    .animation(.easeOut.delay(0.3)){
-                        $0.opacity(circleTapped[index] ? 0 : 1)
-                    }
-                
-                    .onTapGesture {
-                        
-                        circleTapped[index].toggle()
-                        if TapCompleted {
-                        gameDone = true
-                            print(gameDone	)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                onGameComplete?()
-                            }
-                    }
+                    
+                        .animation(.spring (response: 0.3, dampingFraction: 0.4)){
+                            $0.scaleEffect(circleTapped[index] ? 1.5 : 1.0)
+                        }
+                    
+                    
+                        .animation(.easeOut.delay(0.3)){
+                            $0.opacity(circleTapped[index] ? 0 : 1)
+                        }
+                    
+                        .onTapGesture {
+                            handleTap(at: index)
+                        }
                 }
             }
+            .frame(width: 300, height: 220 )
+            .background()
+            .overlay{
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(style: StrokeStyle(lineWidth: 2))
+                    .foregroundColor(.gray)
+            }
         }
-        .padding()
     }
 }
 
 
 #Preview {
-    CirclesView()
+    CirclesView( ilustration: Image("Reason"))
 }

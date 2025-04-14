@@ -196,36 +196,47 @@ struct DustRemoverView2: View {
     
     // MARK: - View Body
     var body: some View {
-         VStack(spacing: -25) {
-             ZStack(alignment: .top) {
-                backgroundImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: backgroundWidth, height: backgroundHeight)
-                    .clipped()
-
-                foregroundImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: foregroundWidth, height: foregroundHeight)
-                    .clipped()
-                    .mask(scratchMask)
-                    .gesture(dragGesture)
+        ZStack {
+            
+            Color.white
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: -25) {
+                ZStack(alignment: .top) {
+                    backgroundImage
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: backgroundWidth, height: backgroundHeight)
+                        .clipped()
+                    
+                    foregroundImage
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: foregroundWidth, height: foregroundHeight)
+                        .clipped()
+                        .mask(scratchMask)
+                        .gesture(dragGesture)
+                }
+                
+                VStack() {
+                    Text("Erased: \(erasedPercentage, specifier: "%.1f")%")
+                        .padding()
+                        .background(Color.black)
+                        .foregroundColor(.white)
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, 15)
+                .frame(width: backgroundWidth, alignment: .trailing)
             }
-
-            VStack() {
-                Text("Erased: \(erasedPercentage, specifier: "%.1f")%")
-                    .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
-                    .clipShape(Capsule())
+            
+            .task { // Use .task for initialization
+                initializeGrid()
             }
-            .padding(.horizontal, 15)
-            .frame(width: backgroundWidth, alignment: .trailing)
+            
+           
         }
-        .task { // Use .task for initialization
-            initializeGrid()
-        }
+       
+
     }
 
    

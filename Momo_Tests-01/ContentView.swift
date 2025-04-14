@@ -27,7 +27,6 @@ struct GameContainer: View {
                         name: "Tap Game",
                         content: AnyView(TapProgressView(illustration: Image("rectangle33"))),
                         transition: .cameraPan,
-                        winCondition: .custom({ false }),
                         isCompleted: false
                     ),
                     Level(
@@ -38,16 +37,14 @@ struct GameContainer: View {
                             foregroundImage: Image("rectangle35"),
                             completionThreshold: 90.0)
                         ),
-                        transition: .cameraPanF,
-                        winCondition: .custom({ false }),
+                        transition: .cameraPan,
                         isCompleted: false
                     ),
                     Level(
                         id: UUID(),
                         name: "Drag Game",
                         content: AnyView(DragProgressView(swipeSensitivity: 8.0)),
-                        transition: .fade,
-                        winCondition: .custom({ false }),
+                        transition: .cameraPan,
                         isCompleted: false
                     )
                 ],
@@ -90,7 +87,7 @@ struct GameContainer: View {
 
         }
         .environment(\.levelManager, levelManager)
-        .animation(.linear(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
+        .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
     }
 }
 

@@ -64,48 +64,53 @@ struct TapProgressView: View {
     }
 //MARK: - View
     var body: some View {
-        VStack {
-            // Tap area
-            
-            illustration
-                .resizable()
-                .scaledToFill()
-                .frame(width: ilustrationWidth, height: ilustrationHeight)
-                .clipped()
-            
-            // Progress bar with modern animation
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    // Background of the progress bar
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 20)
-                    
-                    // Filled portion of the progress bar
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(isComplete ? Color.green : Color.blue)
-                        .frame(width: geometry.size.width * CGFloat(progress), height: 20)
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+            VStack {
+                // Tap area
+                
+                illustration
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: ilustrationWidth, height: ilustrationHeight)
+                    .clipped()
+                
+                // Progress bar with modern animation
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        // Background of the progress bar
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 20)
+                        
+                        // Filled portion of the progress bar
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(isComplete ? Color.green : Color.blue)
+                            .frame(width: geometry.size.width * CGFloat(progress), height: 20)
+                    }
                 }
+                .frame(height: 20)
+                .frame (width: 300)
+                .padding()
+                
+                //tapable area
+                Rectangle()
+                    .fill(Color.red)
+                    .aspectRatio(1.0, contentMode: .fit)
+                    .frame(width: 80, height: 80)
+                    .contentShape(Rectangle()) // Ensures the entire area is tappable
+                    .onTapGesture {
+                        handleTap()
+                    }
+                    .padding(15)
             }
-            .frame(height: 20)
-            .padding()
-            
-            //tapable area
-            Rectangle()
-                .fill(Color.red)
-                .aspectRatio(1.0, contentMode: .fit)
-                .frame(width: 80, height: 80)
-                .contentShape(Rectangle()) // Ensures the entire area is tappable
-                .onTapGesture {
-                    handleTap()
-                }
-                .padding(15)
-        }
-        .onAppear {
-            startTimer()
-        }
-        .onDisappear {
-            stopTimer()
+            .onAppear {
+                startTimer()
+            }
+            .onDisappear {
+                stopTimer()
+            }
         }
     }
     
