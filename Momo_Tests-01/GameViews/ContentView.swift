@@ -11,7 +11,7 @@ extension EnvironmentValues {
     }
 }
 
-struct GameContainer: View {
+struct ContentView: View {
     @State private var levelManager = LevelManager(chapters: [])
     
     
@@ -29,7 +29,11 @@ struct GameContainer: View {
                         transition: .cameraPan,
                         isCompleted: false
                     ),
-                    Level(id: UUID(), name: "1_1", content: AnyView(ImageScrollView(images: Scroll_1_1)), transition: .cameraPan, isCompleted: false
+                    Level(id: UUID(),
+                          name: "1_1",
+                          content: AnyView(ImageScrollView(images: Scroll_1_1)),
+                          transition: .cameraPan,
+                          isCompleted: false
                          ),
                     Level(
                         id: UUID(),
@@ -42,6 +46,18 @@ struct GameContainer: View {
                         transition: .cameraPan,
                         isCompleted: false
                     ),
+                    Level(
+                        id: UUID(),
+                        name: "Swipe Game",
+                        content: AnyView(ImageTap(iulstration: Image("rectangle33"))),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    ),
+                    Level(id: UUID(),
+                          name: "test_dialogue",
+                          content: AnyView(DialogueView(dialogueImage: Image("rectangle33"), ilustration: Image("Reason"))),
+                          transition: .cameraPan,
+                          isCompleted: false),
                     Level(
                         id: UUID(),
                         name: "Drag Game",
@@ -100,9 +116,7 @@ struct GameContainer: View {
     }
 }
 
-// Environment key for level manager
-
 #Preview {
-    GameContainer()
+    ContentView()
 }
 
