@@ -59,7 +59,7 @@ struct DustRemoverView2: View {
         .frame(width: foregroundWidth, height: foregroundHeight)
     }
 
-    // MARK: - Drag Gesture Logic (Main Thread Only)
+    // MARK: - Drag Gesture Logic
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .onChanged { value in
@@ -80,7 +80,7 @@ struct DustRemoverView2: View {
             }
     }
 
-    // MARK: -Funciones y codigo del gird (Helper Functions)
+    // MARK: -Funciones y codigo del gird
 
     private func initializeGrid() {
         // Runs on Main Actor via .task
@@ -197,7 +197,7 @@ struct DustRemoverView2: View {
     // MARK: - View Body
     var body: some View {
          VStack(spacing: -25) {
-            ZStack(alignment: .top) {
+             ZStack(alignment: .top) {
                 backgroundImage
                     .resizable()
                     .scaledToFill()

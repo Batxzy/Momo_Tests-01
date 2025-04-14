@@ -1,6 +1,13 @@
 import SwiftUI
 
 struct TapProgressView: View {
+    //MARK: - vairbales y cosistas  estado
+    var illustration : Image
+
+    private let ilustrationWidth: CGFloat = 340
+    
+    private let ilustrationHeight: CGFloat = 600
+        
     // Track progress from 0 to 1
     @State private var progress: Double = 0.0
     // Track if the bar has reached 100%
@@ -17,30 +24,54 @@ struct TapProgressView: View {
     private let decrementAmount: Double = 0.03
     // Timer interval
     private let timerInterval: TimeInterval = 0.1
+//MARK: - Funciones
+    private func handleTap() {
+        guard !isComplete else { return }
+        
+        // Use withAnimation for smooth progress update
+        withAnimation() {
+            progress = min(progress + tapIncrement, 1.0)
+        }
+        
+        if progress >= 1.0 {
+            completeGame()
+        }
+    }
     
+    private func completeGame() {
+        isComplete = true
+        stopTimer()
+        
+        levelManager.completeLevel()
+    }
+    
+    private func stopTimer() {
+         timer?.invalidate()
+         timer = nil
+         }
+    
+    private func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) { _ in
+            if !isComplete && progress > 0 {
+                // Use withAnimation for smoother transitions
+                withAnimation {
+                    // Decrease progress over time
+                    progress = max(progress - decrementAmount, 0.0)
+                }
+            }
+        }
+        
+    }
+//MARK: - View
     var body: some View {
         VStack {
             // Tap area
-            ZStack {
-                Rectangle()
-                    .fill(Color.red)
-                    .aspectRatio(1.0, contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle()) // Ensures the entire area is tappable
-                    .onTapGesture {
-                        handleTap()
-                    }
-                
-                // Overlay for completion state
-                if isComplete {
-                    Rectangle()
-                        .fill(Color.blue)
-                        .aspectRatio(1.0, contentMode: .fit)
-                        .frame(maxWidth: .infinity)
-                        .transition(.opacity)
-                }
-            }
-            .padding()
+            
+            illustration
+                .resizable()
+                .scaledToFill()
+                .frame(width: ilustrationWidth, height: ilustrationHeight)
+                .clipped()
             
             // Progress bar with modern animation
             GeometryReader { geometry in
@@ -59,11 +90,16 @@ struct TapProgressView: View {
             .frame(height: 20)
             .padding()
             
-            // Display the percentage
-            Text("\(Int(progress * 100))%")
-                .font(.title)
-                .bold()
-                .padding(.top, 8)
+            //tapable area
+            Rectangle()
+                .fill(Color.red)
+                .aspectRatio(1.0, contentMode: .fit)
+                .frame(width: 80, height: 80)
+                .contentShape(Rectangle()) // Ensures the entire area is tappable
+                .onTapGesture {
+                    handleTap()
+                }
+                .padding(15)
         }
         .onAppear {
             startTimer()
@@ -73,50 +109,10 @@ struct TapProgressView: View {
         }
     }
     
-    func stopTimer() {
-       timer?.invalidate()
-       timer = nil
-       }
+  
     
-    private func handleTap() {
-        guard !isComplete else { return }
-        
-        // Use withAnimation for smooth progress update
-        withAnimation() {
-            progress = min(progress + tapIncrement, 1.0)
-        }
-        
-        if progress >= 1.0 {
-            completeGame()
-        }
-    }
-    
-    private func completeGame() {
-        isComplete = true
-        stopTimer()
-        
-        levelManager.completeLevel() 
-    }
-    
-    private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) { _ in
-            if !isComplete && progress > 0 {
-                // Use withAnimation for smoother transitions
-                withAnimation {
-                    // Decrease progress over time
-                    progress = max(progress - decrementAmount, 0.0)
-                }
-            }
-        }
-        
-     
-        
-    }
+   
 }
 #Preview {
-    // Create a simple LevelManager for the preview
-    let levelManager = LevelManager(chapters: [])
-    
-    return TapProgressView()
-        .environment(\.levelManager, levelManager)
+ TapProgressView(illustration: Image("rectangle33"))
 }

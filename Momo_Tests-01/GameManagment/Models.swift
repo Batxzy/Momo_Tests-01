@@ -10,11 +10,13 @@ import SwiftUI
 enum LevelTransition {
     case fade
     case cameraPan
+    case cameraPanF
     
     var duration: TimeInterval {
         switch self {
         case .fade: return 0.8  // Increased from 0.5
         case .cameraPan: return 1.2  // Increased from 0.8
+        case .cameraPanF: return 1.2 
         }
     }
 }

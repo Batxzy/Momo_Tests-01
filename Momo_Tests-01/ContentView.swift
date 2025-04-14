@@ -25,7 +25,7 @@ struct GameContainer: View {
                     Level(
                         id: UUID(),
                         name: "Tap Game",
-                        content: AnyView(TapProgressView()),
+                        content: AnyView(TapProgressView(illustration: Image("rectangle33"))),
                         transition: .cameraPan,
                         winCondition: .custom({ false }),
                         isCompleted: false
@@ -38,7 +38,7 @@ struct GameContainer: View {
                             foregroundImage: Image("rectangle35"),
                             completionThreshold: 90.0)
                         ),
-                        transition: .cameraPan,
+                        transition: .cameraPanF,
                         winCondition: .custom({ false }),
                         isCompleted: false
                     ),
@@ -65,6 +65,11 @@ struct GameContainer: View {
         switch type {
         case .fade:
             return .opacity
+        case .cameraPanF:
+            return .asymmetric(
+                insertion: .move(edge: .trailing),
+                removal: .opacity
+                )
         case .cameraPan:
             return .asymmetric(
                 insertion: .move(edge: .trailing),
@@ -85,7 +90,7 @@ struct GameContainer: View {
 
         }
         .environment(\.levelManager, levelManager)
-        .animation(.easeInOut(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
+        .animation(.linear(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
     }
 }
 
