@@ -5,6 +5,9 @@ struct ContentView: View {
     @Environment(LevelManager.self) private var levelManager
     @Binding var path: NavigationPath // To pop back
     
+    let fadeInDuration: Double = 2.0
+    let holdDuration: Double = 0.3
+    let fadeOutDuration: Double = 1.8
     
     private func getTransition(for type: LevelTransition) -> AnyTransition {
         switch type {
@@ -45,12 +48,17 @@ struct ContentView: View {
         
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
-                // Wait for fade animation to complete before navigating
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    // Navigate directly using path instead of callback
+                // Start fade-in animation
+                withAnimation(.easeIn(duration: fadeInDuration)) {
+                    // Set to true (already happening in your code)
+                }
+                
+                // Navigate during peak opacity
+                DispatchQueue.main.asyncAfter(deadline: .now() + fadeInDuration + holdDuration) {
                     path.append(NavigationTarget.chapterMenu)
                     
-                    Task { @MainActor in
+                    // Start fade-out animation after navigation
+                    withAnimation(.easeOut(duration: fadeOutDuration)) {
                         levelManager.showChapterCompletionFade = false
                     }
                 }
