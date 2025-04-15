@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+//MARK: - Properties y funcion
     @Environment(LevelManager.self) private var levelManager
     @Binding var path: NavigationPath // To pop back
     
@@ -24,23 +25,26 @@ struct ContentView: View {
         }
     }
     
-    
+
     var body: some View {
         ZStack {
-            // Display current level content from LevelManager
+            //llama al view del juego que le corresponde
             levelManager.currentLevel.content
+                // usa la trancion del nivel actual
                 .transition(getTransition(for: levelManager.currentLevel.transition))
                 .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
             
-            // Added: White overlay for chapter completion fade
+            // vemos si funciona
             Color.white
                 .opacity(levelManager.showChapterCompletionFade ? 1 : 0)
                 .ignoresSafeArea()
-                // Use a specific animation for the fade overlay
                 .animation(.easeInOut(duration: 1.1), value: levelManager.showChapterCompletionFade)
         }
+        //animacion que se le aplica a la transcion
         .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
-        // Handle chapter completion state change
+        
+        //dudo pk no jala bien
+        
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
                 // Trigger navigation immediately when the fade starts

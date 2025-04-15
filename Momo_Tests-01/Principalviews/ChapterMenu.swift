@@ -14,37 +14,32 @@ struct ChapterMenu: View {
     
     var body: some View {
         VStack(spacing: 32) {
-            // Added: Title
-            Text("Seleccionar Capítulo")
-                .font(.largeTitle)
-                .padding(.bottom)
+
             
-            // Changed: Use ForEach to iterate over chapters from LevelManager
+            // for loop para cada capitulo
             ForEach(levelManager.chapters.indices, id: \.self) { index in
                 let chapter = levelManager.chapters[index]
-                // Changed: Wrap Text in a Button
+               
+                
                 Button {
-                    // Added: Action to start selected chapter and navigate
+                    //le mueve al level manager
                     levelManager.startGame(chapterIndex: index)
                     path.append(NavigationTarget.game)
                     
                 } label: {
                     Text(chapter.title)
                         .font(.system(size: 32, weight: .medium))
-                    // Added: Conditional foreground color based on unlock status
                         .foregroundColor(chapter.isUnlocked ? .primary : .gray)
                 }
-                // Added: Disable button if chapter is locked
                 .disabled(!chapter.isUnlocked)
             }
             
         }
-        .navigationBarBackButtonHidden(true) // Apply to VStack
-            .toolbar {                          // Apply to VStack
+        .navigationBarBackButtonHidden(true)
+            .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        // Clear the navigation path to go back to the root (MainMenu)
-                        path = NavigationPath() // Reset the path
+                        path = NavigationPath()
                     } label: {
                         HStack {
                             Image(systemName: "chevron.backward")
@@ -61,10 +56,10 @@ struct ChapterMenu: View {
             @State var previewLevelManager = LevelManager()
 
             var body: some View {
-                NavigationStack(path: $previewPath) { // Use binding from container's state
-                    ChapterMenu(path: $previewPath) // Pass binding
+                NavigationStack(path: $previewPath) {
+                    ChapterMenu(path: $previewPath)
                 }
-                .environment(previewLevelManager) // Provide environment from container's state
+                .environment(previewLevelManager)
             }
         }
 

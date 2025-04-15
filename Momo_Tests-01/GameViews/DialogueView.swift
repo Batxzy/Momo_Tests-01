@@ -45,8 +45,8 @@ struct DialogueView: View {
                     .cornerRadius(20)
                     .clipped()
                     .onTapGesture {
-                        guard !didTap else { return } // Check if already tapped
-                            didTap = true // Set tapped state to true
+                        guard !didTap else { return }
+                            didTap = true
                             levelManager.completeLevel()
                     }
             }

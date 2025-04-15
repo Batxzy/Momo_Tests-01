@@ -20,13 +20,15 @@ struct DragProgressView: View {
 
     @State private var lastDragPosition: CGPoint = .zero
     
-    // Position of green rectangle relative to blue rectangle (0-1 range in each dimension)
+    // posicion del rectanglo verde
     let greenRectRelativePosition: CGPoint = CGPoint(x: 0.5, y: 0.80)
 
+    // control del drag
     private let decrementAmount: Double = 0.03
     private let timerInterval: TimeInterval = 0.1
 
 //MARK: - Funciones y geststos
+    
     // Calculates the internal multiplier based on user sensitivity
     private var dragMultiplier: Double {
         let validatedSensitivity = max(1.0, min(10.0, swipeSensitivity))
@@ -35,6 +37,7 @@ struct DragProgressView: View {
         let minMultiplier = 0.00001
         return maxMultiplier - ((validatedSensitivity - 1) / 9.0) * (maxMultiplier - minMultiplier)
     }
+    
     // Drag Gesture Logic
     private var dragGesture: some Gesture {
             DragGesture(minimumDistance: 1) // Lower minimum distance for responsiveness
@@ -105,19 +108,17 @@ struct DragProgressView: View {
 //MARK: - View
     var body: some View {
         VStack(spacing: 30) {
-            // --- Draggable Area ---
+            
+            //--- Drag Area ----
             ZStack {
-                // Blue background rectangle
                 Rectangle()
                     .fill(Color.blue)
                     .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
                     .overlay(
                         GeometryReader { blueGeometry in
-                            // Green draggable rectangle
                             Rectangle()
                                 .fill(Color.green)
                                 .frame(width: greenRectangleSize.width, height: greenRectangleSize.height)
-                                // Position relative to the blue rectangle's bounds
                                 .position(
                                     x: blueGeometry.size.width * greenRectRelativePosition.x,
                                     y: blueGeometry.size.height * greenRectRelativePosition.y
@@ -126,7 +127,7 @@ struct DragProgressView: View {
                         }
                     )
             }
-            .frame(width: blueRectangleSize.width, height: blueRectangleSize.height) // Constrain ZStack size
+            .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
 
             // --- Progress Bar Area ---
             VStack(spacing: 10) {
@@ -147,7 +148,7 @@ struct DragProgressView: View {
             }
             .padding(20)
         }
-        .padding() // Add some padding around the whole view
+        .padding()
         .onAppear(perform: startTimer)
         .onDisappear(perform: stopTimer)
     }

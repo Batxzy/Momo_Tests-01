@@ -23,12 +23,12 @@ struct DustRemoverView2: View {
     let completionThreshold: CGFloat
     @State private var hasTriggeredCompletion: Bool = false
 
-    // Configuration
+    // configuracion de la view
     private let scratchRadius: CGFloat = 35
     private let gridScale: CGFloat = 10.0
     private let interpolationStep: CGFloat = 8.0
 
-    // For interpolation
+    // para la interpolacion
     @State private var lastPoint: CGPoint?
 
     // Using your exact dimensions
@@ -130,7 +130,6 @@ struct DustRemoverView2: View {
 
     // MARK: - Combined Grid Update and Completion Check (Main Thread)
 
-    // Updates grid state directly and checks completion
     private func updateGridAndCheckCompletion(at point: CGPoint) {
         guard !erasedGrid.isEmpty, totalCells > 0, !hasTriggeredCompletion else { return }
 
@@ -179,7 +178,6 @@ struct DustRemoverView2: View {
         }
     }
 
-    // Checks completion threshold (Called from main thread)
     private func checkCompletion() {
         // Already checked !hasTriggeredCompletion in caller, but double-check is safe
         guard !hasTriggeredCompletion, totalCells > 0 else { return }

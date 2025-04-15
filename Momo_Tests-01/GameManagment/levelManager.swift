@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 
 @Observable class LevelManager {
+    
+    //MARK: -variables y propiedades calculadas
     var chapters: [Chapter]
     var currentChapterIndex: Int
     var currentLevelIndex: Int
@@ -37,19 +39,24 @@ import SwiftUI
     
     var onChapterCompleteNavigation: (() -> Void)?
     
+    //MARK: - funciones
     
     // Regular level completion transitions
     func completeLevel() {
 
+        //para cuidar si el indice no esta bien
         guard chapters.indices.contains(currentChapterIndex),
               chapters[currentChapterIndex].levels.indices.contains(currentLevelIndex) else {
             print("Error: Invalid state in completeLevel")
             return
         }
-
+        
+        //toggle a que ya esta completado en el struct
         chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
         print("Completed Level: Chapter \(currentChapterIndex + 1), Level \(currentLevelIndex + 1)")
 
+        
+        //si tiene otro nivel en el capitulo --- esta es la parte que triggerea el avance al siguiente nivel
         if hasNextLevelInCurrentChapter {
             currentLevelIndex += 1
             updateCounter += 1
@@ -57,17 +64,16 @@ import SwiftUI
             print(lastActionLog)
             // No callback needed here, just advancing level
         } else {
-            // --- Chapter Finished ---
+            // --- Chapter Logic --- //
             lastActionLog = "Completed Chapter \(currentChapterIndex + 1)"
             print(lastActionLog)
-
+            
+          //si hay otro capitulo lo desbloquea desde aca
             if hasNextChapter {
                 chapters[currentChapterIndex + 1].isUnlocked = true
                 print("Unlocked Chapter \(currentChapterIndex + 2)")
-                // Don't return yet, we need to trigger navigation
             } else {
                 handleGameCompletion()
-                // Don't return yet, trigger navigation even if game is fully complete
             }
 
             updateCounter += 1
@@ -84,10 +90,9 @@ import SwiftUI
             currentChapterIndex = chapterIndex
             currentLevelIndex = 0
         }
-        
-        // Updated initializer with mock data
+//MARK: -Init con los datos
         init() {
-            // --- Sample Data ---
+            // --- Datos ---
             let chapter1Levels = [
                 Level(
                     id: UUID(),
