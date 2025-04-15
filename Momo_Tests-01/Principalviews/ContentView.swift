@@ -9,16 +9,19 @@ struct ContentView: View {
         switch type {
         case .fade:
             return .opacity
+                    .animation(.easeInOut(duration: 0.6))
         case .cameraPanF:
             return .asymmetric(
                 insertion: .move(edge: .trailing),
                 removal: .opacity
                 )
+                .animation(spring(duration: 0.8))
         case .cameraPan:
             return .asymmetric(
                 insertion: .move(edge: .trailing),
                 removal: .move(edge: .leading)
             )
+                .animation(spring(duration: 0.8))
         }
     }
     
@@ -37,8 +40,6 @@ struct ContentView: View {
                 // Use a specific animation for the fade overlay
                 .animation(.easeInOut(duration: 1.1), value: levelManager.showChapterCompletionFade)
         }
-
-        .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
         // Handle chapter completion state change
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
