@@ -59,4 +59,5 @@ struct DialogueView: View {
 
 #Preview {
     DialogueView(dialogueImage: Image("Reason"), ilustration: Image("rectangle33"))
+        .environment(LevelManager())
 }

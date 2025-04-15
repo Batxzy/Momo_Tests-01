@@ -85,4 +85,5 @@ struct CirclesView: View {
 
 #Preview {
     CirclesView( ilustration: Image("rectangle33"))
+        .environment(LevelManager())
 }

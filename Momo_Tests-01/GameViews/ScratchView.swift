@@ -160,5 +160,6 @@ struct DragProgressView_Previews: PreviewProvider {
     static var previews: some View {
         // Example with higher sensitivity (harder to fill)
         DragProgressView(swipeSensitivity: 9)
+            .environment(LevelManager())
     }
 }

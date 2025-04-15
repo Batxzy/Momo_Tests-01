@@ -120,4 +120,5 @@ struct TapProgressView: View {
 }
 #Preview {
  TapProgressView(illustration: Image("rectangle33"))
+        .environment(LevelManager())
 }

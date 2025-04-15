@@ -246,6 +246,7 @@ struct DustRemoverView2: View {
 
 #Preview {
     DustRemoverView2(backgroundImage: Image("rectangle33"), foregroundImage: Image("rectangle35"), completionThreshold: 100.0)
+        .environment(LevelManager())
     
     
 }

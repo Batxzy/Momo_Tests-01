@@ -37,4 +37,6 @@ struct ImageTap: View {
 
 #Preview {
     ImageTap(iulstration: Image("Reason"))
+        .environment(LevelManager())
+    
 }

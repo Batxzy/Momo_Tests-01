@@ -58,4 +58,5 @@ struct ImageScrollView: View {
 
 #Preview {
     ImageScrollView(images: [Image("Reason"), Image("rectangle33")])
+        .environment(LevelManager())
 }
