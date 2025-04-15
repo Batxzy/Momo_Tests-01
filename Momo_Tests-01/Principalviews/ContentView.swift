@@ -38,24 +38,22 @@ struct ContentView: View {
             Color.white
                 .opacity(levelManager.showChapterCompletionFade ? 1 : 0)
                 .ignoresSafeArea()
-                .animation(.easeInOut(duration: 1.1), value: levelManager.showChapterCompletionFade)
+                .animation(.easeInOut(duration: 1.8), value: levelManager.showChapterCompletionFade)
         }
         //animacion que se le aplica a la transcion
         .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
         
-        //dudo pk no jala bien
-        
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
-                // Trigger navigation immediately when the fade starts
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { // Delay slightly longer than animation
-                                    levelManager.onChapterCompleteNavigation?() // Trigger the navigation callback
-                                    // Reset the flag after navigation is triggered
-                                    // Ensure this runs even if the view disappears immediately
-                                    Task { @MainActor in
-                                         levelManager.showChapterCompletionFade = false
-                                    }
-                                }
+                // Wait for fade animation to complete before navigating
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    // Navigate directly using path instead of callback
+                    path.append(NavigationTarget.chapterMenu)
+                    
+                    Task { @MainActor in
+                        levelManager.showChapterCompletionFade = false
+                    }
+                }
             }
         }
     }
