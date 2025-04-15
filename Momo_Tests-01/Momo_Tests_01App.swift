@@ -6,14 +6,14 @@
 //
 
 import SwiftUI
-
+import NavigationTransitions
 @main
 
 struct Momo_Tests_01App: App {
 
     @State private var levelManager = LevelManager()
     @State private var navigationPath = NavigationPath()
-
+    
     var body: some Scene {
         WindowGroup {
             
@@ -32,8 +32,10 @@ struct Momo_Tests_01App: App {
                         }
                     }
             }
+           
             .environment(levelManager)
-            
+            .navigationTransition(
+                .fade(.out).animation(.easeInOut(duration: 0.8)))
             .onAppear {
                levelManager.onChapterCompleteNavigation = {
                    print("Navigation callback triggered.")

@@ -152,7 +152,12 @@ import SwiftUI
                     content: AnyView(CirclesView(ilustration:Image("Reason" ))),
                     transition: .cameraPan,
                     isCompleted: false
-                )
+                ),
+                Level(id: UUID(),
+                      name: "blank",
+                      content: AnyView(blankview()),
+                      transition: .cameraPan,
+                      isCompleted: false)
             ]
             
             let chapter2Levels = [

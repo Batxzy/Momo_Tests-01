@@ -9,6 +9,10 @@ struct ContentView: View {
     let holdDuration: Double = 0.3
     let fadeOutDuration: Double = 1.8
     
+    private var currentLevelIdentifier: String {
+           "\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)"
+       }
+    
     private func getTransition(for type: LevelTransition) -> AnyTransition {
         switch type {
         case .fade:
@@ -28,14 +32,14 @@ struct ContentView: View {
         }
     }
     
-
+//MARK: -View
     var body: some View {
         ZStack {
             //llama al view del juego que le corresponde
             levelManager.currentLevel.content
                 // usa la trancion del nivel actual
                 .transition(getTransition(for: levelManager.currentLevel.transition))
-                .id("\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)-\(levelManager.updateCounter)")
+                .id(currentLevelIdentifier)
             
             // vemos si funciona
             Color.white
@@ -44,7 +48,7 @@ struct ContentView: View {
                 .animation(.easeInOut(duration: 1.8), value: levelManager.showChapterCompletionFade)
         }
         //animacion que se le aplica a la transcion
-        .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
+        .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: currentLevelIdentifier)
         
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
