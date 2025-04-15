@@ -41,5 +41,11 @@ struct ChapterMenu: View {
 }
 
 #Preview {
-    ChapterMenu()
+    @State var previewPath = NavigationPath()
+    @State var previewLevelManager = LevelManager()
+
+    return NavigationStack {
+        ChapterMenu(path: $previewPath)
+    }
+    .environment(previewLevelManager)
 }
