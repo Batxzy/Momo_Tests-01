@@ -58,11 +58,33 @@ struct MainMenu: View {
 }
 
 #Preview {
-    @State var previewPath = NavigationPath()
-    @State var previewLevelManager = LevelManager()
+    // Helper struct to hold state for the preview
+    struct PreviewWrapper: View {
+        @State var previewPath = NavigationPath()
+        @State var previewLevelManager = LevelManager()
 
-    return NavigationStack {
-         MainMenu(path: $previewPath)
-     }
-     .environment(previewLevelManager)
+        var body: some View {
+            // Bind the NavigationStack to the path
+            NavigationStack(path: $previewPath) {
+                MainMenu(path: $previewPath)
+                    // Add navigation destinations for the preview
+                    .navigationDestination(for: NavigationTarget.self) { target in
+                        // Display placeholder views for the destinations in the preview
+                        switch target {
+                        case .game:
+                            Text("Preview: Navigated to Game View")
+                                .navigationTitle("Game Preview")
+                                .navigationBarBackButtonHidden(true) // Hide back button in preview destination
+                        case .chapterMenu:
+                            Text("Preview: Navigated to Chapter Menu")
+                                .navigationTitle("Chapters Preview")
+                        // Add cases for any other NavigationTarget values if needed
+                        }
+                    }
+            }
+            .environment(previewLevelManager)
+        }
+    }
+    // Return an instance of the helper struct
+    return PreviewWrapper()
 }

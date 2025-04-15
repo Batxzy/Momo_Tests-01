@@ -35,44 +35,44 @@ import SwiftUI
         currentChapterIndex + 1 < chapters.count
     }
     
+    var onChapterCompleteNavigation: (() -> Void)?
     
     
     // Regular level completion transitions
     func completeLevel() {
-        
+
         guard chapters.indices.contains(currentChapterIndex),
               chapters[currentChapterIndex].levels.indices.contains(currentLevelIndex) else {
             print("Error: Invalid state in completeLevel")
             return
         }
-        
+
         chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
         print("Completed Level: Chapter \(currentChapterIndex + 1), Level \(currentLevelIndex + 1)")
-        
+
         if hasNextLevelInCurrentChapter {
             currentLevelIndex += 1
             updateCounter += 1
             lastActionLog = "Advanced to Level \(currentLevelIndex + 1) in Chapter \(currentChapterIndex + 1)"
             print(lastActionLog)
-            return
+            // No callback needed here, just advancing level
         } else {
-            
+            // --- Chapter Finished ---
             lastActionLog = "Completed Chapter \(currentChapterIndex + 1)"
             print(lastActionLog)
-            
-            
+
             if hasNextChapter {
-                
                 chapters[currentChapterIndex + 1].isUnlocked = true
                 print("Unlocked Chapter \(currentChapterIndex + 2)")
-                updateCounter += 1
-                return
+                // Don't return yet, we need to trigger navigation
             } else {
-                
                 handleGameCompletion()
-                updateCounter += 1
-                return
+                // Don't return yet, trigger navigation even if game is fully complete
             }
+
+            updateCounter += 1
+            // --- Trigger the navigation callback AFTER handling chapter completion logic ---
+            onChapterCompleteNavigation?()
         }
     }
         
