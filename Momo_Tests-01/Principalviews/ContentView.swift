@@ -39,16 +39,17 @@ struct ContentView: View {
         }
 
         .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
-                .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
+        // Handle chapter completion state change
+        .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
-                // Wait for the fade animation (0.6s) to mostly complete, then navigate
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { // Delay slightly longer than animation
-                    levelManager.onChapterCompleteNavigation?() // Trigger the navigation callback
-                    // Reset the flag after navigation is triggered
-                    // Ensure this runs even if the view disappears immediately
-                    Task { @MainActor in
-                         levelManager.showChapterCompletionFade = false
-                    }
+                // Trigger navigation immediately when the fade starts
+                levelManager.onChapterCompleteNavigation?()
+
+                // Reset the flag immediately after triggering navigation.
+                // Use Task to ensure it runs on the main actor.
+                // The visual fade animation might be cut short by the navigation.
+                Task { @MainActor in
+                     levelManager.showChapterCompletionFade = false
                 }
             }
         }
