@@ -13,7 +13,7 @@ import SwiftUI
     var currentChapterIndex: Int
     var currentLevelIndex: Int
     var transitionType: LevelTransition?
-    
+    var showChapterCompletionFade: Bool = false
     
     // For update tracking
     var lastActionLog: String = ""
@@ -71,8 +71,8 @@ import SwiftUI
             }
 
             updateCounter += 1
-            // --- Trigger the navigation callback AFTER handling chapter completion logic ---
-            onChapterCompleteNavigation?()
+
+            showChapterCompletionFade: Bool = true
         }
     }
         
