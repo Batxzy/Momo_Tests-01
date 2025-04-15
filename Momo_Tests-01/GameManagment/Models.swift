@@ -36,3 +36,8 @@ struct Chapter: Identifiable {
     var levels: [Level]
     var isUnlocked: Bool
 }
+
+enum NavigationTarget: Hashable {
+    case chapterMenu
+    case game
+}

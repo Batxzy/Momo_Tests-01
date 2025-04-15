@@ -13,7 +13,7 @@ import SwiftUI
     var currentChapterIndex: Int
     var currentLevelIndex: Int
     var transitionType: LevelTransition?
-    var itemSpacing: CGFloat = 40 // Spacing between carousel items
+
     
     // For update tracking
     var lastActionLog: String = ""
@@ -22,7 +22,7 @@ import SwiftUI
     var currentChapter: Chapter {
         chapters[currentChapterIndex]
     }
-    
+     
     var currentLevel: Level {
         currentChapter.levels[currentLevelIndex]
     }
@@ -40,49 +40,141 @@ import SwiftUI
     // Regular level completion transitions
     func completeLevel() {
             
-            if currentChapterIndex < chapters.count && currentLevelIndex < chapters[currentChapterIndex].levels.count {
-                
-                 chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
-            }
-
-
-            if currentLevelIndex + 1 < chapters[currentChapterIndex].levels.count {
-                currentLevelIndex += 1
-            } else if currentChapterIndex + 1 < chapters.count {
-               
-                currentChapterIndex += 1
-                currentLevelIndex = 0
-                 if currentChapterIndex < chapters.count {
-                     chapters[currentChapterIndex].isUnlocked = true
-                 }
-            } else {
-              
-                print("All levels completed!")
-                // You might want to add state here to indicate game completion
-                return // Stop further updates if the game is over
-            }
-
-            // Increment the counter to trigger the transition in GameContainer
-            updateCounter += 1
-            print("Level completed. New state: Chapter \(currentChapterIndex), Level \(currentLevelIndex), UpdateCounter: \(updateCounter)")
+            guard chapters.indices.contains(currentChapterIndex),
+              chapters[currentChapterIndex].levels.indices.contains(currentLevelIndex) else {
+            print("Error: Invalid state in completeLevel")
+            return false 
         }
+
+        chapters[currentChapterIndex].levels[currentLevelIndex].isCompleted = true
+        print("Completed Level: Chapter \(currentChapterIndex + 1), Level \(currentLevelIndex + 1)")
+
+        if hasNextLevelInCurrentChapter {
+            currentLevelIndex += 1
+            updateCounter += 1
+            lastActionLog = "Advanced to Level \(currentLevelIndex + 1) in Chapter \(currentChapterIndex + 1)"
+            print(lastActionLog)
+            return false 
+        } else {
+            
+            lastActionLog = "Completed Chapter \(currentChapterIndex + 1)"
+            print(lastActionLog)
+
+            
+            if hasNextChapter {
+                
+                chapters[currentChapterIndex + 1].isUnlocked = true
+                print("Unlocked Chapter \(currentChapterIndex + 2)")
+                updateCounter += 1 
+                return true 
+            } else {
+                
+                handleGameCompletion()
+                updateCounter += 1
+                return true 
+            }
+        }
+    
     
     private func handleGameCompletion() {
         print("All chapters and levels completed!")
         lastActionLog = "Game completed!"
     }
     
+    func startGame(chapterIndex: Int) {
+        currentChapterIndex = chapterIndex
+        currentLevelIndex = 0
+    }
     
-    init(chapters: [Chapter]) {
-        self.chapters = chapters
-        self.currentChapterIndex = 0
-        self.currentLevelIndex = 0
-        
-        // Make first chapter unlocked by default
-        if !chapters.isEmpty {
-            var updatedChapters = chapters
-            updatedChapters[0].isUnlocked = true
-            self.chapters = updatedChapters
-        }
+    // Updated initializer with mock data
+    init() {
+         // --- Sample Data ---
+         let chapter1Levels = [
+                    Level(
+                        id: UUID(),
+                        name: "Tap Game",
+                        content: AnyView(TapProgressView(
+                            illustration: Image("rectangle33"))
+                        ),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    ),
+                    Level(id: UUID(),
+                          name: "1_1",
+                          content: AnyView(ImageScrollView(images: Scroll_1_1)),
+                          transition: .cameraPan,
+                          isCompleted: false
+                         ),
+                    Level(
+                        id: UUID(),
+                        name: "Dust Remover",
+                        content: AnyView(DustRemoverView2(
+                            backgroundImage: Image("rectangle33"),
+                            foregroundImage: Image("rectangle35"),
+                            completionThreshold: 90.0)
+                        ),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    ),
+                    Level(
+                        id: UUID(),
+                        name: "Swipe Game",
+                        content: AnyView(ImageTap(
+                            iulstration: Image("rectangle33"))
+                        ),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    ),
+                    Level(id: UUID(),
+                          name: "test_dialogue",
+                          content: AnyView(DialogueView(
+                                dialogueImage: Image("rectangle33"),
+                                ilustration: Image("Reason"))
+                          ),
+                          transition: .cameraPan,
+                          isCompleted: false),
+                    Level(
+                        id: UUID(),
+                        name: "Drag Game",
+                        content: AnyView(DragProgressView(
+                            swipeSensitivity: 8.0)
+                        ),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    ),
+                    Level(
+                        id: UUID(),
+                        name: "Tapping",
+                        content: AnyView(CirclesView(ilustration:Image("Reason" ))),
+                        transition: .cameraPan,
+                        isCompleted: false
+                    )
+         ]
+
+         let chapter2Levels = [
+             Level(id: UUID(), name: "2_1", content: AnyView(Text("Chapter 2 - Level 1 Placeholder")), transition: .fade),
+             Level(id: UUID(), name: "2_2", content: AnyView(Text("Chapter 2 - Level 2 Placeholder")), transition: .fade),
+         ]
+
+         let chapter3Levels = [
+             Level(id: UUID(), name: "3_1", content: AnyView(Text("Chapter 3 - Level 1 Placeholder")), transition: .cameraPanF),
+             Level(id: UUID(), name: "3_2", content: AnyView(Text("Chapter 3 - Level 2 Placeholder")), transition: .cameraPanF),
+         ]
+
+         self.chapters = [
+             Chapter(id: UUID(), title: "Chapter 1", levels: chapter1Levels, isUnlocked: true), // First chapter starts unlocked
+             Chapter(id: UUID(), title: "Chapter 2", levels: chapter2Levels, isUnlocked: false),
+             Chapter(id: UUID(), title: "Chapter 3", levels: chapter3Levels, isUnlocked: false)
+         ]
+         // --- End Sample Data ---
+
+         self.currentChapterIndex = 0 // Default start
+         self.currentLevelIndex = 0   // Default start
+
+         // Ensure first chapter is marked unlocked explicitly if needed
+         if !chapters.isEmpty && !chapters[0].isUnlocked {
+             self.chapters[0].isUnlocked = true
+         }
+         print("LevelManager initialized with \(chapters.count) chapters.")
     }
 }
