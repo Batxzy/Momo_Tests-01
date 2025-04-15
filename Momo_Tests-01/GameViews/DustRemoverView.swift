@@ -32,10 +32,10 @@ struct DustRemoverView2: View {
     @State private var lastPoint: CGPoint?
 
     // Using your exact dimensions
-    private let backgroundWidth: CGFloat = 334
-    private let backgroundHeight: CGFloat = 720
-    private let foregroundWidth: CGFloat = 334
-    private let foregroundHeight: CGFloat = 300
+     let backgroundWidth: CGFloat
+     let backgroundHeight: CGFloat
+     let foregroundWidth: CGFloat
+     let foregroundHeight: CGFloat
 
     private var erasedPercentage: CGFloat {
         guard totalCells > 0 else { return 0 }
@@ -243,7 +243,14 @@ struct DustRemoverView2: View {
 // MARK: - Preview
 
 #Preview {
-    DustRemoverView2(backgroundImage: Image("rectangle33"), foregroundImage: Image("rectangle35"), completionThreshold: 100.0)
+    DustRemoverView2(
+            backgroundImage: Image("rectangle33"),
+            foregroundImage: Image("rectangle35"),
+            completionThreshold: 90.0,
+            backgroundWidth: 347,
+            backgroundHeight: 700,
+            foregroundWidth: 347,
+            foregroundHeight: 700)
         .environment(LevelManager())
     
     

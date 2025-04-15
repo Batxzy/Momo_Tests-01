@@ -94,6 +94,30 @@ import SwiftUI
         init() {
             // --- Datos ---
             let chapter1Levels = [
+                
+                Level(id: UUID(),
+                      name: "1_1",
+                      content: AnyView(ImageScrollView(images: Scroll_1_1)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                
+                Level(
+                    id: UUID(),
+                    name: "Dust Remover",
+                    content: AnyView(DustRemoverView2(
+                        backgroundImage: Image("rectangle33"),
+                        foregroundImage: Image("rectangle35"),
+                        completionThreshold: 90.0,
+                        backgroundWidth: 334,
+                        backgroundHeight: 720,
+                        foregroundWidth: 334,
+                        foregroundHeight: 720)
+                    ),
+                    transition: .cameraPan,
+                    isCompleted: false
+                ),
+                
                 Level(
                     id: UUID(),
                     name: "Tap Game",
@@ -103,40 +127,15 @@ import SwiftUI
                     transition: .cameraPan,
                     isCompleted: false
                 ),
-                Level(id: UUID(),
-                      name: "1_1",
-                      content: AnyView(ImageScrollView(images: Scroll_1_1)),
-                      transition: .cameraPan,
-                      isCompleted: false
-                     ),
+                
                 Level(
                     id: UUID(),
-                    name: "Dust Remover",
-                    content: AnyView(DustRemoverView2(
-                        backgroundImage: Image("rectangle33"),
-                        foregroundImage: Image("rectangle35"),
-                        completionThreshold: 90.0)
-                    ),
+                    name: "Circle tap",
+                    content: AnyView(CirclesView(ilustration:Image("Reason"))),
                     transition: .cameraPan,
                     isCompleted: false
                 ),
-                Level(
-                    id: UUID(),
-                    name: "Swipe Game",
-                    content: AnyView(ImageTap(
-                        iulstration: Image("rectangle33"))
-                    ),
-                    transition: .cameraPan,
-                    isCompleted: false
-                ),
-                Level(id: UUID(),
-                      name: "test_dialogue",
-                      content: AnyView(DialogueView(
-                        dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Reason"))
-                      ),
-                      transition: .cameraPan,
-                      isCompleted: false),
+                
                 Level(
                     id: UUID(),
                     name: "Drag Game",
@@ -146,23 +145,101 @@ import SwiftUI
                     transition: .cameraPan,
                     isCompleted: false
                 ),
+                
                 Level(
                     id: UUID(),
-                    name: "Tapping",
-                    content: AnyView(CirclesView(ilustration:Image("Reason" ))),
+                    name: "Dust Remover",
+                    content: AnyView(DustRemoverView2(
+                        backgroundImage: Image("rectangle33"),
+                        foregroundImage: Image("rectangle35"),
+                        completionThreshold: 90.0,
+                        backgroundWidth: 334,
+                        backgroundHeight: 720,
+                        foregroundWidth: 334,
+                        foregroundHeight: 230)
+                    ),
                     transition: .cameraPan,
                     isCompleted: false
                 ),
+                
+                Level(id: UUID(),
+                      name: "1_2",
+                      content: AnyView(ImageScrollView(images: Scroll_1_2)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+             
                 Level(id: UUID(),
                       name: "blank",
                       content: AnyView(blankview()),
                       transition: .cameraPan,
                       isCompleted: false)
+                
             ]
             
             let chapter2Levels = [
-                Level(id: UUID(), name: "2_1", content: AnyView(Text("Chapter 2 - Level 1 Placeholder")), transition: .fade),
-                Level(id: UUID(), name: "2_2", content: AnyView(Text("Chapter 2 - Level 2 Placeholder")), transition: .fade),
+                Level(id: UUID(),
+                      name: "2_1",
+                      content: AnyView(ImageScrollView(images: Scroll_2_1)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                
+                Level(id: UUID(),
+                      name: "Dialogue_2_1",
+                      content: AnyView(DialogueView(
+                        dialogueImage: Image("rectangle33"),
+                        ilustration: Image("Reason"))
+                      ),
+                      transition: .cameraPan,
+                      isCompleted: false),
+                Level(id: UUID(),
+                      name: "Dialogue_2_2",
+                      content: AnyView(DialogueView(
+                        dialogueImage: Image("rectangle33"),
+                        ilustration: Image("Reason"))
+                      ),
+                      
+                      transition: .cameraPan,
+                      isCompleted: false),
+                Level(id: UUID(),
+                      name: "Dialogue_2_3",
+                      content: AnyView(DialogueView(
+                        dialogueImage: Image("rectangle33"),
+                        ilustration: Image("Reason"))
+                      ),
+                      
+                      transition: .cameraPan,
+                      isCompleted: false),
+                Level(id: UUID(),
+                      name: "Dialogue_2_4",
+                      content: AnyView(DialogueView(
+                        dialogueImage: Image("rectangle33"),
+                        ilustration: Image("Reason"))
+                      ),
+                      transition: .cameraPan,
+                      isCompleted: false),
+                
+                Level(id: UUID(),
+                      name: "2_2",
+                      content: AnyView(ImageScrollView(images:Scroll_2_2)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                
+                Level(id: UUID(),
+                      name: "Tap_2-1",
+                      content: AnyView(ImageTap(iulstration:Image ("Reason"))),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                Level(id: UUID(),
+                      name: "Tap_2-2",
+                      content: AnyView(ImageTap(iulstration:Image ("rectangle35"))),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     )
+                
             ]
             
             let chapter3Levels = [
