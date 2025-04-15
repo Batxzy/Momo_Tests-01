@@ -16,7 +16,7 @@ struct TapProgressView: View {
     @State private var timer: Timer? = nil
     
     // Get the level manager from the environment
-    @Environment(\.levelManager) private var levelManager
+    @Environment(LevelManager.self) private var levelManager
     
     // Amount to increase on tap
     private let tapIncrement: Double = 0.1

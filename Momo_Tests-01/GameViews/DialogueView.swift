@@ -10,7 +10,7 @@ import SwiftUI
 
 struct DialogueView: View {
 
-    @Environment(\.levelManager) var levelManager
+    @Environment(LevelManager.self) private var levelManager
     @State var didTap: Bool = false
     
     var dialogueImage: Image

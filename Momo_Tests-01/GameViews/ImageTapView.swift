@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ImageTap: View {
     //MARK: - variables y setup
-        @Environment(\.levelManager) var levelManager
+        @Environment(LevelManager.self) private var levelManager
         @State private var didTap :Bool  = false
         
         public var iulstration: Image

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DustRemoverView2: View {
     // MARK: - PROPERTIES
-    @Environment(\.levelManager) private var levelManager
+    @Environment(LevelManager.self) private var levelManager
 
     //imagenes a usar
     let backgroundImage: Image

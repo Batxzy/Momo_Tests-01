@@ -27,7 +27,7 @@ struct Momo_Tests_01App: App {
                         case .chapterMenu:
                             ChapterMenu(path: $navigationPath) // Pass path
                         case .game:
-                            GameView(path: $navigationPath)    // Pass path
+                            ContentView(path: $navigationPath)    // Pass path
                         }
                     }
             }

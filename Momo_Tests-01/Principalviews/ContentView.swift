@@ -25,9 +25,6 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Current level content
-            var body: some View {
-        ZStack {
             // Display current level content from LevelManager
             levelManager.currentLevel.content
                 .transition(getTransition(for: levelManager.currentLevel.transition))
@@ -47,7 +44,7 @@ struct ContentView: View {
 
          var body: some View {
              NavigationStack(path: $previewPath) {
-                 GameView(path: $previewPath)
+                 ContentView(path: $previewPath)
                      .navigationDestination(for: NavigationTarget.self) { target in
                          Text("Preview Destination: \(String(describing: target))")
                      }

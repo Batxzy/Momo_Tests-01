@@ -10,7 +10,7 @@ import SwiftUI
 struct ImageScrollView: View {
 
 //MARK: - variables y setup
-    @Environment(\.levelManager) var levelManager
+    @Environment(LevelManager.self) private var levelManager
     @State var didTap: Bool = false
     
     public var images: [Image]

@@ -11,7 +11,7 @@ struct CirclesView: View {
 
 //MARK: - Variables y cosos del state
     
-    @Environment(\.levelManager) var levelmanager
+    @Environment(LevelManager.self) private var levelManager
     
     var ilustration: Image
     
@@ -33,7 +33,7 @@ struct CirclesView: View {
         circleTapped[index] = true
 
         if areAllCirclesTapped {
-            levelmanager.completeLevel()
+            levelManager.completeLevel()
         }
     }
 //MARK: - View

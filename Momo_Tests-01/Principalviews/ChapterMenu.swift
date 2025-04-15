@@ -41,11 +41,18 @@ struct ChapterMenu: View {
 }
 
 #Preview {
-    @State var previewPath = NavigationPath()
-    @State var previewLevelManager = LevelManager()
+    struct ChapterMenuPreviewContainer: View {
+            @State var previewPath = NavigationPath()
+            @State var previewLevelManager = LevelManager()
 
-    return NavigationStack {
-        ChapterMenu(path: $previewPath)
-    }
-    .environment(previewLevelManager)
+            var body: some View {
+                NavigationStack(path: $previewPath) { // Use binding from container's state
+                    ChapterMenu(path: $previewPath) // Pass binding
+                }
+                .environment(previewLevelManager) // Provide environment from container's state
+            }
+        }
+
+        // Changed: Return an instance of the container struct
+        return ChapterMenuPreviewContainer()
 }

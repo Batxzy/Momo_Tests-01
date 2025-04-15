@@ -4,7 +4,7 @@ struct DragProgressView: View {
 
 //MARK: - Setup de cosas
     
-    @Environment(\.levelManager) var levleManager
+    @Environment(LevelManager.self) private var levelManager
     
     @State private var progress: Double = 0.0
     @State private var isComplete: Bool = false
@@ -58,7 +58,7 @@ struct DragProgressView: View {
                         // Check if complete
                         if progress >= 1.0 && !isComplete {
                             isComplete = true
-                            levleManager.completeLevel()
+                            levelManager.completeLevel()
                         }
 
                         // Update last position for the next delta calculation
