@@ -9,41 +9,54 @@ import SwiftUI
 
 
 struct TaskListView: View {
-    // State for the tasks
-    @State private var tasks: [TaskItem] = [
-        TaskItem(title: "Actividad 1",
-             initialImageName: Image(  "rectangle33"),
-             finalImageName: Image( "rectangle35")),
-        TaskItem(title: "Actividad 2",
-             initialImageName: Image(  "rectangle33"),
-             finalImageName: Image( "rectangle35")),
-    ]
+    
+    @State private var tasks: [TaskItem]
 
     @State private var activeTaskIndex: Int? = nil
-
+    
+    init(){
+        let initialTaskData: [TaskItem] = [
+            
+            TaskItem(
+                title: "Actividad 1",
+                initialImageName: Image("rectangle33"),
+                finalImageName: Image("rectangle35")
+                ),
+            
+            TaskItem(
+                title: "Actividad 1",
+                initialImageName: Image("rectangle33"),
+                finalImageName: Image("rectangle35")
+                )
+        ]
+        _tasks = State(initialValue: initialTaskData)
+    }
+    
     var body: some View {
         ZStack {
-            // The main list of tasks
             VStack() {
                 ForEach(tasks.indices, id: \.self) { index in
                     HStack {
                         Text(tasks[index].title)
                             .font(.largeTitle)
-                            .strikethrough(tasks[index].isCompleted, color: .gray) // Apply strikethrough if completed
+                            .strikethrough(tasks[index].isCompleted, color: .gray)
                             .foregroundColor(tasks[index].isCompleted ? .gray : .primary)
                     }
-                    .padding(.vertical, 5)
+                    .padding(10)
                     .onTapGesture {
                         if !tasks[index].isCompleted && activeTaskIndex == nil {
-                            activeTaskIndex = index
+                            
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                activeTaskIndex = index
+                            }
                         }
                     }
                     Divider()
                 }
             }
             .padding()
+            .disabled(activeTaskIndex != nil)
 
-            // Conditionally overlay the ImageChangeView
             if let index = activeTaskIndex {
                 ImageChangeView(
                     initialImage: tasks[index].initialImageName,
@@ -52,35 +65,37 @@ struct TaskListView: View {
                         completeTask(at: index)
                     }
                 )
-                // Ensure it covers the whole screen if needed
-                 .edgesIgnoringSafeArea(.all)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+                .edgesIgnoringSafeArea(.all)
+                .zIndex(1)
             }
         }
     }
 
-    // Function called by ImageChangeView's completion callback
     private func completeTask(at index: Int) {
-        // Ensure the index is valid
         guard tasks.indices.contains(index) else { return }
 
-        // Mark the task as completed
         tasks[index].isCompleted = true
 
-        // Hide the ImageChangeView
-        activeTaskIndex = nil
+        withAnimation(.easeInOut(duration: 0.5)) {
+            activeTaskIndex = nil
+        }
 
-        // Check if all tasks are completed
-        if tasks.allSatisfy({ $0.isCompleted }) {
-            // All tasks are done, call your final action
-            performFinalAction()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { // Adjust delay as needed
+             if tasks.allSatisfy({ $0.isCompleted }) {
+                 performFinalAction()
+             }
         }
     }
 
-    // Placeholder for your final action
     private func performFinalAction() {
         print("All tasks completed! Performing final action.")
     }
 }
+
 
 #Preview {
     TaskListView()
