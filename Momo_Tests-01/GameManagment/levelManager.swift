@@ -71,11 +71,10 @@ import SwiftUI
             }
 
             updateCounter += 1
-
-            showChapterCompletionFade: Bool = true
+            
+            showChapterCompletionFade = true
         }
     }
-        
         private func handleGameCompletion() {
             print("All chapters and levels completed!")
             lastActionLog = "Game completed!"

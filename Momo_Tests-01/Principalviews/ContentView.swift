@@ -35,7 +35,7 @@ struct ContentView: View {
                 .opacity(levelManager.showChapterCompletionFade ? 1 : 0)
                 .ignoresSafeArea()
                 // Use a specific animation for the fade overlay
-                .animation(.easeInOut(duration: 0.6), value: levelManager.showChapterCompletionFade)
+                .animation(.easeInOut(duration: 1.1), value: levelManager.showChapterCompletionFade)
         }
 
         .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: levelManager.updateCounter)
@@ -43,14 +43,14 @@ struct ContentView: View {
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
                 // Trigger navigation immediately when the fade starts
-                levelManager.onChapterCompleteNavigation?()
-
-                // Reset the flag immediately after triggering navigation.
-                // Use Task to ensure it runs on the main actor.
-                // The visual fade animation might be cut short by the navigation.
-                Task { @MainActor in
-                     levelManager.showChapterCompletionFade = false
-                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { // Delay slightly longer than animation
+                                    levelManager.onChapterCompleteNavigation?() // Trigger the navigation callback
+                                    // Reset the flag after navigation is triggered
+                                    // Ensure this runs even if the view disappears immediately
+                                    Task { @MainActor in
+                                         levelManager.showChapterCompletionFade = false
+                                    }
+                                }
             }
         }
     }
