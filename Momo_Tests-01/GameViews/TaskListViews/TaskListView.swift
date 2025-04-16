@@ -43,13 +43,13 @@ struct TaskListView: View {
                 title: "Actividad 2",
                 initialImageName: Image("rectangle33"),
                 finalImageName: Image("rectangle35"),
-                Dialogueimage: Image("Reason")
+                Dialogueimage: Image("rectangle33")
             ),
             TaskItem(
                 title: "Actividad 3",
                 initialImageName: Image("rectangle33"),
                 finalImageName: Image("rectangle35"),
-                Dialogueimage: Image("rectangle33")
+                Dialogueimage: Image("rectangle35")
             ),
             TaskItem(
                 title: "Actividad 4",
@@ -61,7 +61,7 @@ struct TaskListView: View {
                 title: "Actividad 5",
                 initialImageName: Image("rectangle33"),
                 finalImageName: Image("rectangle35"),
-                Dialogueimage: Image("Reason")
+                Dialogueimage: Image("rectangle35")
             )
         ])
         _currentDialogImage = State(initialValue: defaultDialogImage)
@@ -77,26 +77,26 @@ struct TaskListView: View {
     }
     
     private func completeTask(at index: Int) {
-            guard tasks.indices.contains(index) else { return }
-            
-            tasks[index].isCompleted = true
-            
-            // Store which dialog image to show next
-            nextDialogImage = tasks[index].Dialogueimage
-            shouldUpdateDialogImage = true
-            
-            // Only hide the ImageChangeView now - dialog image will update later
-            withAnimation(.easeInOut(duration: 0.5)) {
-                activeTaskIndex = nil
-            }
-            
-            // Check if all tasks are completed after a delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                if tasks.allSatisfy({ $0.isCompleted }) {
-                    performFinalAction()
-                }
+        guard tasks.indices.contains(index) else { return }
+        
+        tasks[index].isCompleted = true
+        
+        // Store which dialog image to show next
+        nextDialogImage = tasks[index].Dialogueimage
+        shouldUpdateDialogImage = true
+        
+        // Only hide the ImageChangeView now - dialog image will update later
+        withAnimation(.easeInOut(duration: 0.5)) {
+            activeTaskIndex = nil
+        }
+        
+        // Check if all tasks are completed after a delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if tasks.allSatisfy({ $0.isCompleted }) {
+                performFinalAction()
             }
         }
+    }
     private func performFinalAction() {
         levelManager.completeLevel()
     }
@@ -104,37 +104,39 @@ struct TaskListView: View {
     // MARK: - View
     var body: some View {
         ZStack {
-
-            VStack(spacing: 30) {
-                
-                VStack(spacing: 30){
+            // Main content
+            VStack (spacing: 45){
+                VStack(spacing: 30) {
                     ForEach(tasks.indices, id: \.self) { index in
-                        TaskRow(
+                        TaskRowButton(
                             task: tasks[index],
-                            isDisabled: activeTaskIndex != nil
+                            isDisabled: activeTaskIndex != nil,
+                            onTap: {
+                                handleTaskTap(at: index)
+                            }
                         )
-                        .onTapGesture {
-                            handleTaskTap(at: index)
-                        }
                     }
                 }
-                    .disabled(activeTaskIndex != nil)
+                .padding()
                 
+                
+                
+                // Dialog image in separate container
                 currentDialogImage
                     .resizable()
                     .scaledToFill()
                     .frame(width: 300, height: 200)
                     .clipped()
-                    .padding()
-                    .id(imageTransitionId) // Important for animation
+                    .contentShape(Rectangle())
+                    .id(imageTransitionId)
                     .transition(.asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 1.05)),
-                            removal: .opacity.combined(with: .scale(scale: 0.95))
-                        ))
-                
+                        insertion: .opacity.combined(with: .scale(scale: 1.05)),
+                        removal: .opacity.combined(with: .scale(scale: 0.95))
+                    ))
             }
+            .disabled(activeTaskIndex != nil)
             
-            // Active task image change view
+            // Overlay for active task
             if let index = activeTaskIndex {
                 ImageChangeView(
                     initialImage: tasks[index].initialImageName,
@@ -147,16 +149,17 @@ struct TaskListView: View {
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
                 ))
-                .edgesIgnoringSafeArea(.all)
-                .zIndex(1)
+                .ignoresSafeArea()
+                .zIndex(1) // Ensure it's on top
             }
+            
         }
-        .onChange(of: activeTaskIndex) { newValue in
-            if newValue == nil && shouldUpdateDialogImage, let nextImage = nextDialogImage {
-                // This delay ensures the dialog image changes AFTER the ImageChangeView transition
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        .onChange(of: activeTaskIndex) {
+            if activeTaskIndex == nil && shouldUpdateDialogImage, let nextImage = nextDialogImage {
+        
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     withAnimation(.easeInOut(duration: 0.6)) {
-                        imageTransitionId = UUID() // Force transition
+                        imageTransitionId = UUID()
                         currentDialogImage = nextImage
                     }
                     shouldUpdateDialogImage = false
@@ -167,21 +170,24 @@ struct TaskListView: View {
     }
 }
     // MARK: - Helper Views
-    private struct TaskRow: View {
-        let task: TaskItem
-        let isDisabled: Bool
-        
-        var body: some View {
-            HStack {
+struct TaskRowButton: View {
+    let task: TaskItem
+    let isDisabled: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
                 Text(task.title)
                     .font(.largeTitle)
                     .strikethrough(task.isCompleted, color: .gray)
                     .foregroundColor(task.isCompleted ? .gray : .primary)
-            }
-            .padding(10)
-            .opacity(isDisabled && !task.isCompleted ? 0.6 : 1.0)
+                    .padding(5)
+                    .contentShape(Rectangle())
         }
+        .disabled(task.isCompleted || isDisabled)
+        .opacity(isDisabled && !task.isCompleted ? 0.6 : 1.0)
     }
+}
     
 
 

@@ -258,12 +258,6 @@ import SwiftUI
                       isCompleted: false
                      ),
                 Level(id: UUID(),
-                      name: "Tap_2-3",
-                      content: AnyView(ImageTap(iulstration:Image ("rectangle35"))),
-                      transition: .cameraPan,
-                      isCompleted: false
-                     ),
-                Level(id: UUID(),
                       name: "2_4",
                       content: AnyView(ImageScrollView(images:Scroll_2_4)),
                       transition: .cameraPan,
@@ -283,7 +277,7 @@ import SwiftUI
             ]
             // --- End Sample Data ---
             
-            self.currentChapterIndex = 1 // Default start
+            self.currentChapterIndex = 0 // Default start
             self.currentLevelIndex = 0   // Default start
             
             // Ensure first chapter is marked unlocked explicitly if needed
