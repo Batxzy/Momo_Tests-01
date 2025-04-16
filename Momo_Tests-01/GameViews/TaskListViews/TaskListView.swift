@@ -11,8 +11,15 @@ import SwiftUI
 struct TaskListView: View {
     
     @State private var tasks: [TaskItem]
-
+    
     @State private var activeTaskIndex: Int? = nil
+    
+    @Environment(LevelManager.self) private var levelManager
+    
+    
+    private func performFinalAction() {
+        levelManager.completeLevel()
+    }
     
     init(){
         let initialTaskData: [TaskItem] = [
@@ -21,13 +28,28 @@ struct TaskListView: View {
                 title: "Actividad 1",
                 initialImageName: Image("rectangle33"),
                 finalImageName: Image("rectangle35")
-                ),
+            ),
             
             TaskItem(
-                title: "Actividad 1",
+                title: "Actividad 2",
                 initialImageName: Image("rectangle33"),
                 finalImageName: Image("rectangle35")
-                )
+            ),
+            TaskItem(
+                title: "Actividad 3",
+                initialImageName: Image("rectangle33"),
+                finalImageName: Image("rectangle35")
+            ),
+            TaskItem(
+                title: "Actividad 4",
+                initialImageName: Image("rectangle33"),
+                finalImageName: Image("rectangle35")
+            ),
+            TaskItem(
+                title: "Actividad 5",
+                initialImageName: Image("rectangle33"),
+                finalImageName: Image("rectangle35")
+            )
         ]
         _tasks = State(initialValue: initialTaskData)
     }
@@ -56,7 +78,7 @@ struct TaskListView: View {
             }
             .padding()
             .disabled(activeTaskIndex != nil)
-
+            
             if let index = activeTaskIndex {
                 ImageChangeView(
                     initialImage: tasks[index].initialImageName,
@@ -74,29 +96,24 @@ struct TaskListView: View {
             }
         }
     }
-
+    
     private func completeTask(at index: Int) {
         guard tasks.indices.contains(index) else { return }
-
+        
         tasks[index].isCompleted = true
-
+        
         withAnimation(.easeInOut(duration: 0.5)) {
             activeTaskIndex = nil
         }
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { // Adjust delay as needed
-             if tasks.allSatisfy({ $0.isCompleted }) {
-                 performFinalAction()
-             }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { // Adjust delay as needed
+            if tasks.allSatisfy({ $0.isCompleted }) {
+                performFinalAction()
+            }
         }
     }
-
-    private func performFinalAction() {
-        print("All tasks completed! Performing final action.")
-    }
 }
-
-
 #Preview {
     TaskListView()
+        .environment(LevelManager())
 }

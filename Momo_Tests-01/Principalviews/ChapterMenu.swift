@@ -54,7 +54,8 @@ struct ChapterMenu: View {
     struct ChapterMenuPreviewContainer: View {
             @State var previewPath = NavigationPath()
             @State var previewLevelManager = LevelManager()
-
+            
+            
             var body: some View {
                 NavigationStack(path: $previewPath) {
                     ChapterMenu(path: $previewPath)

@@ -6,39 +6,60 @@ struct ImageChangeView: View {
     let finalImage: Image
     let onComplete: () -> Void
 
-    @State private var currentImage: Image
     @State private var wasClicked: Bool = false
 
     init(initialImage: Image, finalImage: Image, onComplete: @escaping () -> Void) {
         self.initialImage = initialImage
         self.finalImage = finalImage
         self.onComplete = onComplete
-        _currentImage = State(initialValue: initialImage)
     }
 
     private func handleTap() {
         guard !wasClicked else { return }
-        wasClicked = true
 
-        withAnimation(.linear) {
-             currentImage = finalImage
+        withAnimation(.easeInOut(duration: 0.8)) {
+            wasClicked = true
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             onComplete()
         }
     }
-    
+
     var body: some View {
-        VStack {
-            currentImage
-                .resizable()
-                .scaledToFill()
-                .frame(width: 343, height: 673)
-                .clipped()
-                .onTapGesture {
-                    handleTap()
+        ZStack {
+            Color.black
+            .ignoresSafeArea()
+            VStack(spacing: 30) {
+                ZStack {
+                    initialImage
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 343, height: 673)
+                        .clipped()
+                        .opacity(wasClicked ? 0 : 1)
+                    
+                    finalImage
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 343, height: 673)
+                        .clipped()
+                        .opacity(wasClicked ? 1 : 0)
                 }
+                
+                Button {
+                    handleTap()
+                } label: {
+                    Text("Siguiente")
+                        .padding(15)
+                        .background(.regularMaterial, in: Capsule())
+                        
+                }
+                .disabled(wasClicked)
+                .opacity(wasClicked ? 0 : 1)
+            }
+            
+            
         }
     }
 }
