@@ -2,17 +2,21 @@ import SwiftUI
 
 struct ContentView: View {
 //MARK: - Properties y funcion
-    @Environment(LevelManager.self) private var levelManager
-    @Binding var path: NavigationPath // To pop back
     
+    @Environment(LevelManager.self) private var levelManager
+    @Binding var path: NavigationPath
+    
+    
+    // para controlar el fade del final del nivel
     let fadeInDuration: Double = 2.0
     let holdDuration: Double = 0.3
-    let fadeOutDuration: Double = 1.8
     
+    //propiedad computada para el id
     private var currentLevelIdentifier: String {
            "\(levelManager.currentChapterIndex)-\(levelManager.currentLevelIndex)"
        }
     
+    //switch para ver que transciones va a usar
     private func getTransition(for type: LevelTransition) -> AnyTransition {
         switch type {
         case .fade:
@@ -41,30 +45,24 @@ struct ContentView: View {
                 .transition(getTransition(for: levelManager.currentLevel.transition))
                 .id(currentLevelIdentifier)
             
-            // vemos si funciona
-            Color.white
+            Color.green
                 .opacity(levelManager.showChapterCompletionFade ? 1 : 0)
                 .ignoresSafeArea()
-                .animation(.easeInOut(duration: 1.8), value: levelManager.showChapterCompletionFade)
+            
+            //** control de la curva de animacion **//
+                .animation(.easeInOut(duration: fadeInDuration), value: levelManager.showChapterCompletionFade)
         }
-        //animacion que se le aplica a la transcion
-        .animation(.spring(duration: levelManager.currentLevel.transition.duration), value: currentLevelIdentifier)
         
+        //llama al tipo de animacion que queremos para la transcion
+        .animation(levelManager.currentLevel.animation, value: currentLevelIdentifier)
+        
+        //cuando se acaba el capitulo este bro maneja la transcion
         .onChange(of: levelManager.showChapterCompletionFade) { oldValue, newValue in
             if newValue == true {
-                // Start fade-in animation
-                withAnimation(.easeIn(duration: fadeInDuration)) {
-                    // Set to true (already happening in your code)
-                }
-                
-                // Navigate during peak opacity
+
+                // Navega cuando la pantalla verde esta al maximo
                 DispatchQueue.main.asyncAfter(deadline: .now() + fadeInDuration + holdDuration) {
                     path.append(NavigationTarget.chapterMenu)
-                    
-                    // Start fade-out animation after navigation
-                    withAnimation(.easeOut(duration: fadeOutDuration)) {
-                        levelManager.showChapterCompletionFade = false
-                    }
                 }
             }
         }

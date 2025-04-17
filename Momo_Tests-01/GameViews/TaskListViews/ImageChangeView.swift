@@ -1,7 +1,15 @@
+//
+//  ModelTasks.swift
+//  Momo_Tests-01
+//
+//  Created by Jose julian Lopez on 15/04/25.
+//
+
 import SwiftUI
 
 struct ImageChangeView: View {
 
+//MARK: - variables funciones y init
     let initialImage: Image
     let finalImage: Image
     let onComplete: () -> Void
@@ -17,19 +25,25 @@ struct ImageChangeView: View {
     private func handleTap() {
         guard !wasClicked else { return }
 
+        //** indica la curva entre cambiar imagenes y la duracion **//
         withAnimation(.easeInOut(duration: 0.8)) {
             wasClicked = true
         }
-
+        
+        //** delay antes de que se vuelva a la pantalla de tasks **//
         DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             onComplete()
         }
     }
 
+//MARK: - view
     var body: some View {
         ZStack {
-            Color.black
+            
+            // !! color temporal en lo que hay un fondo, sirve para que la transcion funcione y respete los bordes!! 
+            Color.white
             .ignoresSafeArea()
+            
             VStack(spacing: 30) {
                 ZStack {
                     initialImage
@@ -66,8 +80,8 @@ struct ImageChangeView: View {
 
 #Preview {
     ImageChangeView(
-        initialImage: Image("rectangle33"), // Use SF Symbols or asset names
-        finalImage: Image("rectangle35"), // Use SF Symbols or asset names
+        initialImage: Image("rectangle33"),
+        finalImage: Image("rectangle35"),
         onComplete: {
             print("Preview ImageChangeView completed!")
         }

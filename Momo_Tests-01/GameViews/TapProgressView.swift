@@ -99,7 +99,7 @@ struct TapProgressView: View {
                     .fill(Color.red)
                     .aspectRatio(1.0, contentMode: .fit)
                     .frame(width: 80, height: 80)
-                    .contentShape(Rectangle()) // Ensures the entire area is tappable
+                    .contentShape(Rectangle())
                     .onTapGesture {
                         handleTap()
                     }

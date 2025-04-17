@@ -29,6 +29,8 @@ struct DragProgressView: View {
 
 //MARK: - Funciones y geststos
     
+// +++ salve chadgpt esto eran matematicas de vectores que aun no termino de comprender totalmente +++
+    
     // Calculates the internal multiplier based on user sensitivity
     private var dragMultiplier: Double {
         let validatedSensitivity = max(1.0, min(10.0, swipeSensitivity))

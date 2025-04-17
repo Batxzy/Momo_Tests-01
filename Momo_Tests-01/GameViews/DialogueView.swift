@@ -10,7 +10,9 @@ import SwiftUI
 
 struct DialogueView: View {
 
+//MARK: - Variables y cosos del state
     @Environment(LevelManager.self) private var levelManager
+    
     @State var didTap: Bool = false
     
     var dialogueImage: Image
@@ -23,10 +25,16 @@ struct DialogueView: View {
     private let dialogueHeight: CGFloat = 170
     private let dialogueWidth: CGFloat = 334
     
-    
+    func handletap(){
+        guard !didTap else { return }
+            didTap = true
+            levelManager.completeLevel()
+    }
+//MARK: - view
     var body: some View {
         
         ZStack {
+            // !! color temporal en lo que hay un fondo, sirve para que la transcion funcione y respete los bordes!!
             Color.black
                 .ignoresSafeArea()
             
@@ -45,15 +53,12 @@ struct DialogueView: View {
                     .cornerRadius(20)
                     .clipped()
                     .onTapGesture {
-                        guard !didTap else { return }
-                            didTap = true
-                            levelManager.completeLevel()
+                        handletap()
                     }
             }
         }
         
      
-        
     }
 }
 

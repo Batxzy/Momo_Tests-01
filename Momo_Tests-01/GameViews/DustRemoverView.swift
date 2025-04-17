@@ -31,7 +31,7 @@ struct DustRemoverView2: View {
     // para la interpolacion
     @State private var lastPoint: CGPoint?
 
-    // Using your exact dimensions
+    // dimensiones del view
      let backgroundWidth: CGFloat
      let backgroundHeight: CGFloat
      let foregroundWidth: CGFloat
@@ -41,7 +41,7 @@ struct DustRemoverView2: View {
         guard totalCells > 0 else { return 0 }
         return min(100.0, (CGFloat(erasedCells) / CGFloat(totalCells)) * 100.0)
     }
-    // MARK: - Mask View Component
+    // MARK: - Mask
     private var scratchMask: some View {
         Canvas { context, size in
             var path = Path()
@@ -128,7 +128,7 @@ struct DustRemoverView2: View {
         }
     }
 
-    // MARK: - Combined Grid Update and Completion Check (Main Thread)
+    // MARK: - Combined Grid Update and Completion Check
 
     private func updateGridAndCheckCompletion(at point: CGPoint) {
         guard !erasedGrid.isEmpty, totalCells > 0, !hasTriggeredCompletion else { return }
@@ -186,9 +186,9 @@ struct DustRemoverView2: View {
 
         if currentPercentage >= completionThreshold {
             hasTriggeredCompletion = true
-             withAnimation(.easeInOut(duration: levelManager.currentLevel.transition.duration)) {
-                 levelManager.completeLevel()
-            }
+            
+            levelManager.completeLevel()
+            
         }
     }
     

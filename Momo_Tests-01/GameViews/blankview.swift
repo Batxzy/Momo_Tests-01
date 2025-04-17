@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// tal cual lo que dice que es sirve para tener  un colochon y la transcion quede perrona
 
 struct blankview: View {
     @Environment(LevelManager.self) private var levelManager

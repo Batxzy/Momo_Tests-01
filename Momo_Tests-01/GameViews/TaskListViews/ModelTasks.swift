@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TaskItem: Identifiable {
-    let id = UUID() // Conforms to Identifiable for use in ForEach
+    let id = UUID() 
     var title: String
     var initialImageName: Image
     var finalImageName: Image

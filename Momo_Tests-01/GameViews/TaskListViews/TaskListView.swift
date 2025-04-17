@@ -31,7 +31,8 @@ struct TaskListView: View {
     init() {
         let defaultDialogImage = Image("Reason")
         
-        // Initialize tasks with consistent structure
+    // se definen las tareas con lass iamgenes que va tener su respectiva view cuando le pique
+        
         _tasks = State(initialValue: [
             TaskItem(
                 title: "Actividad 1",
@@ -70,6 +71,8 @@ struct TaskListView: View {
     // MARK: - Funciones
     private func handleTaskTap(at index: Int) {
         if !tasks[index].isCompleted && activeTaskIndex == nil {
+            
+            //** Controla cuanto dura la animacion al pasar a la tarea inicio **//
             withAnimation(.easeInOut(duration: 0.5)) {
                 activeTaskIndex = index
             }
@@ -77,20 +80,21 @@ struct TaskListView: View {
     }
     
     private func completeTask(at index: Int) {
-        guard tasks.indices.contains(index) else { return }
+        guard tasks.indices.contains(index) else { return
+        }
         
         tasks[index].isCompleted = true
         
-        // Store which dialog image to show next
+        //guarda la imagen que va mostrar despues de picarle
         nextDialogImage = tasks[index].Dialogueimage
         shouldUpdateDialogImage = true
         
-        // Only hide the ImageChangeView now - dialog image will update later
+        //** Controla cuanto dura la animacion al pasar a la tarea final **//
         withAnimation(.easeInOut(duration: 0.5)) {
             activeTaskIndex = nil
         }
         
-        // Check if all tasks are completed after a delay
+        //** Controla el delay antes de ir a la siguiente pantalla **//
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             if tasks.allSatisfy({ $0.isCompleted }) {
                 performFinalAction()
@@ -104,8 +108,14 @@ struct TaskListView: View {
     // MARK: - View
     var body: some View {
         ZStack {
-            // Main content
+            // !! color temporal en lo que hay un fondo, sirve para que la transcion funcione y respete los bordes!!
+            Color.white
+                .edgesIgnoringSafeArea(.all)
+            
+            //-- contenedor imagen y tareas-//
             VStack (spacing: 45){
+                
+                //-- contenedor de la lista de tareas --//
                 VStack(spacing: 30) {
                     ForEach(tasks.indices, id: \.self) { index in
                         TaskRowButton(
@@ -116,12 +126,9 @@ struct TaskListView: View {
                             }
                         )
                     }
-                }
-                .padding()
+                        }
+                    .padding()
                 
-                
-                
-                // Dialog image in separate container
                 currentDialogImage
                     .resizable()
                     .scaledToFill()
@@ -129,6 +136,8 @@ struct TaskListView: View {
                     .clipped()
                     .contentShape(Rectangle())
                     .id(imageTransitionId)
+            
+                //** controla el estilo de transcion de la imagen **//
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .scale(scale: 1.05)),
                         removal: .opacity.combined(with: .scale(scale: 0.95))
@@ -136,7 +145,7 @@ struct TaskListView: View {
             }
             .disabled(activeTaskIndex != nil)
             
-            // Overlay for active task
+            //-- todo esto es del overlay que aparece de la tarea --//
             if let index = activeTaskIndex {
                 ImageChangeView(
                     initialImage: tasks[index].initialImageName,
@@ -145,19 +154,25 @@ struct TaskListView: View {
                         completeTask(at: index)
                     }
                 )
+                //** controla el estilo de transcion de las tareas **//
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing),
                     removal: .move(edge: .leading)
                 ))
                 .ignoresSafeArea()
-                .zIndex(1) // Ensure it's on top
+                .zIndex(1)
             }
             
         }
+        
+    // cuandoo cambia el index de task hace los cambios de la imagen para que sucedan despues de la que pasa la animacion
         .onChange(of: activeTaskIndex) {
             if activeTaskIndex == nil && shouldUpdateDialogImage, let nextImage = nextDialogImage {
         
+                //** Controla el delay despues de la animacion **//
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    
+                    //** Controla cuanto dura la animacion entre las imagenes **//
                     withAnimation(.easeInOut(duration: 0.6)) {
                         imageTransitionId = UUID()
                         currentDialogImage = nextImage

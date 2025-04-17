@@ -17,7 +17,7 @@ import SwiftUI
     var transitionType: LevelTransition?
     var showChapterCompletionFade: Bool = false
     
-    // For update tracking
+    // Para imprimr en la consola
     var lastActionLog: String = ""
     var updateCounter: Int = 0
     
@@ -41,10 +41,10 @@ import SwiftUI
     
     //MARK: - funciones
     
-    // Regular level completion transitions
+
     func completeLevel() {
 
-        //para cuidar si el indice no esta bien
+        //para cuidar si el indice no esta bien que la funcion no truene
         guard chapters.indices.contains(currentChapterIndex),
               chapters[currentChapterIndex].levels.indices.contains(currentLevelIndex) else {
             print("Error: Invalid state in completeLevel")
@@ -62,7 +62,6 @@ import SwiftUI
             updateCounter += 1
             lastActionLog = "Advanced to Level \(currentLevelIndex + 1) in Chapter \(currentChapterIndex + 1)"
             print(lastActionLog)
-            // No callback needed here, just advancing level
         } else {
             // --- Chapter Logic --- //
             lastActionLog = "Completed Chapter \(currentChapterIndex + 1)"
@@ -271,16 +270,16 @@ import SwiftUI
             ]
             
             self.chapters = [
-                Chapter(id: UUID(), title: "Chapter 1", levels: chapter1Levels, isUnlocked: true), // First chapter starts unlocked
+                Chapter(id: UUID(), title: "Chapter 1", levels: chapter1Levels, isUnlocked: true),
                 Chapter(id: UUID(), title: "Chapter 2", levels: chapter2Levels, isUnlocked: false),
                 Chapter(id: UUID(), title: "Chapter 3", levels: chapter3Levels, isUnlocked: false)
             ]
-            // --- End Sample Data ---
+           
             
-            self.currentChapterIndex = 0 // Default start
+            self.currentChapterIndex = 1 // Default start
             self.currentLevelIndex = 0   // Default start
             
-            // Ensure first chapter is marked unlocked explicitly if needed
+            // asegurarse de que el primer capitulo si este desbloqueado
             if !chapters.isEmpty && !chapters[0].isUnlocked {
                 self.chapters[0].isUnlocked = true
             }
