@@ -276,7 +276,7 @@ import SwiftUI
             ]
            
             
-            self.currentChapterIndex = 1 // Default start
+            self.currentChapterIndex = 0 // Default start
             self.currentLevelIndex = 0   // Default start
             
             // asegurarse de que el primer capitulo si este desbloqueado
