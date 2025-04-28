@@ -45,7 +45,7 @@ struct ContentView: View {
                 .transition(getTransition(for: levelManager.currentLevel.transition))
                 .id(currentLevelIdentifier)
             
-            Color.green
+            Color.white
                 .opacity(levelManager.showChapterCompletionFade ? 1 : 0)
                 .ignoresSafeArea()
             

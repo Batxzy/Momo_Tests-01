@@ -88,6 +88,7 @@ import SwiftUI
         func startGame(chapterIndex: Int) {
             currentChapterIndex = chapterIndex
             currentLevelIndex = 0
+            showChapterCompletionFade = false
         }
 //MARK: -Init con los datos
         init() {
