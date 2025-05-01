@@ -61,14 +61,9 @@ struct ImageChangeView: View {
                         .opacity(wasClicked ? 1 : 0)
                 }
                 
-                Button {
+                CustomButtonView(title: "siguiente", action: {
                     handleTap()
-                } label: {
-                    Text("Siguiente")
-                        .padding(15)
-                        .background(.regularMaterial, in: Capsule())
-                        
-                }
+                })
                 .disabled(wasClicked)
                 .opacity(wasClicked ? 0 : 1)
             }

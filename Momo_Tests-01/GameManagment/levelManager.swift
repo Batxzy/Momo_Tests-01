@@ -116,11 +116,11 @@ import SwiftUI
                     content: AnyView(DustRemoverView2(
                         backgroundImage: Image("rectangle33"),
                         foregroundImage: Image("rectangle35"),
-                        completionThreshold: 90.0,
                         backgroundWidth: 334,
                         backgroundHeight: 720,
                         foregroundWidth: 334,
-                        foregroundHeight: 720)
+                        foregroundHeight: 720,
+                        completionThreshold: 90.0)
                     ),
                     transition: .cameraPan,
                     isCompleted: false
@@ -158,11 +158,11 @@ import SwiftUI
                     content: AnyView(DustRemoverView2(
                         backgroundImage: Image("rectangle33"),
                         foregroundImage: Image("rectangle35"),
-                        completionThreshold: 90.0,
                         backgroundWidth: 334,
                         backgroundHeight: 720,
                         foregroundWidth: 334,
-                        foregroundHeight: 230)
+                        foregroundHeight: 230,
+                        completionThreshold: 90.0)
                     ),
                     transition: .cameraPan,
                     isCompleted: false

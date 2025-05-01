@@ -39,14 +39,9 @@ struct ImageScrollView: View {
                         
                         HStack {
                             Spacer()
-                            Button {
-                                guard !didTap else { return }
-                                        didTap = true
-                                        levelManager.completeLevel()
-                            } label: {
-                                Text("Siguiente")
-                                    .padding(15)
-                                    .background(.regularMaterial, in: Capsule())
+                            
+                            CustomButtonView(title: "siguiente") {
+                                levelManager.completeLevel()
                             }
                     }
                 }

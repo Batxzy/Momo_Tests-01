@@ -128,11 +128,11 @@ struct Test_ContentView: View {
         let yourExistingViews: [AnyView] = [AnyView(DustRemoverView2(
             backgroundImage: Image("rectangle33"),
             foregroundImage: Image("rectangle36"),
-            completionThreshold: 90.0,
             backgroundWidth: 347,
             backgroundHeight: 700,
             foregroundWidth: 347,
-            foregroundHeight: 700)),AnyView(DragProgressView(swipeSensitivity: 2.0))
+            foregroundHeight: 700,
+            completionThreshold: 90.0)),AnyView(DragProgressView(swipeSensitivity: 2.0))
         ]
         
         // Use the container with your views

@@ -113,7 +113,7 @@ struct TaskListView: View {
                 .edgesIgnoringSafeArea(.all)
             
             //-- contenedor imagen y tareas-//
-            VStack (spacing: 45){
+            VStack (spacing: 35){
                 
                 //-- contenedor de la lista de tareas --//
                 VStack(spacing: 30) {
@@ -193,10 +193,9 @@ struct TaskRowButton: View {
     var body: some View {
         Button(action: onTap) {
                 Text(task.title)
-                    .font(.largeTitle)
+                    .font(.Patrick48)
                     .strikethrough(task.isCompleted, color: .gray)
                     .foregroundColor(task.isCompleted ? .gray : .primary)
-                    .padding(5)
                     .contentShape(Rectangle())
         }
         .disabled(task.isCompleted || isDisabled)

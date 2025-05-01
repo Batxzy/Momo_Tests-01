@@ -8,6 +8,23 @@ struct DustRemoverView2: View {
     let backgroundImage: Image
     let foregroundImage: Image
 
+    // dimensiones del view
+     let backgroundWidth: CGFloat
+     let backgroundHeight: CGFloat
+     let foregroundWidth: CGFloat
+     let foregroundHeight: CGFloat
+
+    // configuracion de la view
+    private let scratchRadius: CGFloat = 35
+    private let gridScale: CGFloat = 10.0
+    private let interpolationStep: CGFloat = 8.0
+    
+    let completionThreshold: CGFloat
+    
+    // Timer for button delay (in seconds)
+    let buttonDelay: Double = 1.0
+    
+    
     // mantengo todas las cordenadas que han sido usdas cuando uso el scratch
     @State private var scratchPoints: [CGPoint] = []
 
@@ -19,23 +36,16 @@ struct DustRemoverView2: View {
 
     //para guardar cuantas celdas hay en realidad
     @State private var totalCells: Int = 0
-
-    let completionThreshold: CGFloat
+    
     @State private var hasTriggeredCompletion: Bool = false
-
-    // configuracion de la view
-    private let scratchRadius: CGFloat = 35
-    private let gridScale: CGFloat = 10.0
-    private let interpolationStep: CGFloat = 8.0
+    @State private var showButton: Bool = false
 
     // para la interpolacion
     @State private var lastPoint: CGPoint?
+    
+    // Timer for button appearance
+    @State private var buttonTimer: Timer? = nil
 
-    // dimensiones del view
-     let backgroundWidth: CGFloat
-     let backgroundHeight: CGFloat
-     let foregroundWidth: CGFloat
-     let foregroundHeight: CGFloat
 
     private var erasedPercentage: CGFloat {
         guard totalCells > 0 else { return 0 }
@@ -63,8 +73,7 @@ struct DustRemoverView2: View {
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .onChanged { value in
-                guard !hasTriggeredCompletion else { return } // Stop processing if already complete
-
+                // Removed guard so scratching can continue after threshold is reached
                 let location = value.location
 
                 // Update visual mask immediately
@@ -72,8 +81,10 @@ struct DustRemoverView2: View {
                 interpolatePoints(from: lastPoint, to: location)
                 lastPoint = location
 
-                // --- Direct Main Thread Grid Update ---
-                updateGridAndCheckCompletion(at: location)
+                // Only update grid if completion hasn't been triggered yet
+                if !hasTriggeredCompletion {
+                    updateGridAndCheckCompletion(at: location)
+                }
             }
             .onEnded { _ in
                 lastPoint = nil // Reset interpolation on gesture end
@@ -91,8 +102,13 @@ struct DustRemoverView2: View {
         totalCells = gridWidth * gridHeight
         erasedCells = 0
         hasTriggeredCompletion = false
+        showButton = false
         scratchPoints = []
         lastPoint = nil
+        
+        // Cancel any existing timer
+        buttonTimer?.invalidate()
+        buttonTimer = nil
     }
 
     private func addScratchPoint(_ point: CGPoint) {
@@ -131,7 +147,7 @@ struct DustRemoverView2: View {
     // MARK: - Combined Grid Update and Completion Check
 
     private func updateGridAndCheckCompletion(at point: CGPoint) {
-        guard !erasedGrid.isEmpty, totalCells > 0, !hasTriggeredCompletion else { return }
+        guard !erasedGrid.isEmpty, totalCells > 0 else { return }
 
         let boundedPoint = CGPoint(
             x: max(0, min(point.x, foregroundWidth)),
@@ -179,7 +195,7 @@ struct DustRemoverView2: View {
     }
 
     private func checkCompletion() {
-        // Already checked !hasTriggeredCompletion in caller, but double-check is safe
+        // Don't check again if already triggered
         guard !hasTriggeredCompletion, totalCells > 0 else { return }
 
         let currentPercentage = (CGFloat(erasedCells) / CGFloat(totalCells)) * 100.0
@@ -187,15 +203,18 @@ struct DustRemoverView2: View {
         if currentPercentage >= completionThreshold {
             hasTriggeredCompletion = true
             
-            levelManager.completeLevel()
-            
+            // Set a timer to show the button after delay
+            buttonTimer = Timer.scheduledTimer(withTimeInterval: buttonDelay, repeats: false) { _ in
+                withAnimation(.easeIn(duration: 0.5)) {
+                    showButton = true
+                }
+            }
         }
     }
     
     // MARK: - View Body
     var body: some View {
         ZStack {
-            
             Color.white
                 .edgesIgnoringSafeArea(.all)
             
@@ -217,27 +236,26 @@ struct DustRemoverView2: View {
                 }
                 
                 VStack() {
-                    Text("Erased: \(erasedPercentage, specifier: "%.1f")%")
-                        .padding()
-                        .background(Color.black)
-                        .foregroundColor(.white)
-                        .clipShape(Capsule())
+                    if showButton {
+                        CustomButtonView(title: "siguiente") {
+                            levelManager.completeLevel()
+                        }
+                        .transition(.opacity)
+                    }
                 }
                 .padding(.horizontal, 15)
                 .frame(width: backgroundWidth, alignment: .trailing)
             }
-            
-            .task { // Use .task for initialization
+            .onAppear {
                 initializeGrid()
             }
-            
-           
         }
-       
-
+        .onDisappear {
+            // Clean up timer when view disappears
+            buttonTimer?.invalidate()
+            buttonTimer = nil
+        }
     }
-
-   
 }
 
 // MARK: - Preview
@@ -246,12 +264,10 @@ struct DustRemoverView2: View {
     DustRemoverView2(
             backgroundImage: Image("rectangle33"),
             foregroundImage: Image("rectangle35"),
-            completionThreshold: 90.0,
             backgroundWidth: 347,
             backgroundHeight: 700,
             foregroundWidth: 347,
-            foregroundHeight: 700)
+            foregroundHeight: 700,
+            completionThreshold: 90.0)
         .environment(LevelManager())
-    
-    
 }
