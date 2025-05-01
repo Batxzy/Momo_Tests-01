@@ -13,12 +13,12 @@ struct MainMenu: View {
     
     var body: some View {
         
-        VStack(spacing: 36){
+        VStack(spacing: 30){
             
             Image("Reason")
                 .resizable()
                 .scaledToFill()
-                .frame(width:280,height: 420 )
+                .frame(width:288,height: 420 )
                 .clipped()
             
             
@@ -55,7 +55,7 @@ struct MainMenu: View {
                     .font(.Patrick32)
                     .padding(12)
             }
-        .navigationBarHidden(true)
+                .navigationBarHidden(true)
         }
     }
 }

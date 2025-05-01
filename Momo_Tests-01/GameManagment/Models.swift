@@ -102,6 +102,12 @@ struct Chapter: Identifiable {
     var isUnlocked: Bool
 }
 
+struct Part : Identifiable {
+    let id: UUID
+    let title: String
+    var chapters: [Chapter]
+}
+
 enum NavigationTarget: Hashable {
     case chapterMenu
     case game

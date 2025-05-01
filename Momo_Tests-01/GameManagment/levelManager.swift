@@ -12,6 +12,7 @@ import SwiftUI
     
     //MARK: -variables y propiedades calculadas
     var chapters: [Chapter]
+    var Parts: [Part]
     var currentChapterIndex: Int
     var currentLevelIndex: Int
     var transitionType: LevelTransition?
@@ -254,6 +255,10 @@ import SwiftUI
                       transition: .cameraPan,
                       isCompleted: false
                      ),
+                
+            ]
+            
+            let chapter3Levels = [
                 Level(id: UUID(),
                       name: "TaskLsit",
                       content: AnyView(TaskListView()),
@@ -280,17 +285,44 @@ import SwiftUI
                      )
             ]
             
-            let chapter3Levels = [
-                Level(id: UUID(), name: "3_1", content: AnyView(Text("Chapter 3 - Level 1 Placeholder")), transition: .cameraPanF),
-                Level(id: UUID(), name: "3_2", content: AnyView(Text("Chapter 3 - Level 2 Placeholder")), transition: .cameraPanF),
+            let chapter4Levels = [
+                Level(id: UUID(),
+                      name: "3_1",
+                      content: AnyView(ImageScrollView(images: Scroll_3_1)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+              
+                Level(id: UUID(),
+                      name: "Tap_3",
+                      content: AnyView(ImageTap(iulstration:Image ("Reason"))),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                Level(id: UUID(),
+                      name: "3_2",
+                      content: AnyView(ImageScrollView(images: Scroll_3_2)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
             ]
             
+            let Chapter1 = Chapter(id: UUID(), title: "Rutina", levels: chapter1Levels, isUnlocked: true)
+            let Chapter2 = Chapter(id: UUID(), title: "Hombres Grises", levels: chapter2Levels, isUnlocked: false)
+            let Chapter3 = Chapter(id: UUID(), title: "Eficiencia", levels: chapter3Levels, isUnlocked: false)
+            let Chapter4 = Chapter(id: UUID(), title: "Boveda del tiempo", levels: chapter4Levels, isUnlocked: false)
+            let Chapter5 = Chapter(id: UUID(), title: "Amigos", levels: chapter4Levels, isUnlocked: false)
+            
             self.chapters = [
-                Chapter(id: UUID(), title: "Rutina", levels: chapter1Levels, isUnlocked: true),
-                Chapter(id: UUID(), title: "Hombres Grises", levels: chapter2Levels, isUnlocked: false),
-                Chapter(id: UUID(), title: "Boveda del tiempo", levels: chapter3Levels, isUnlocked: false)
+               Chapter1,Chapter2,Chapter3,Chapter4,Chapter5
             ]
            
+            
+            let Part1 = Part(id: UUID(), title: "Parte 1", chapters: [Chapter1])
+            let Part2 = Part(id: UUID(), title: "Parte 2", chapters: [Chapter2,Chapter3])
+            let Part3 = Part(id: UUID(), title: "Parte 3", chapters: [Chapter4])
+            
+            self.Parts = [Part1,Part2,Part3]
             
             self.currentChapterIndex = 0 // Default start
             self.currentLevelIndex = 0   // Default start

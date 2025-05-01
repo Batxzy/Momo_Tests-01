@@ -7,50 +7,107 @@
 
 import SwiftUI
 
-struct ChapterMenu: View {
+struct individualChapterMenu: View {
     
+    @Environment(LevelManager.self) private var levelManager
+    
+    let part: Part
+    
+    @Binding var path: NavigationPath
+    
+    
+    var body: some View {
+        
+        VStack(spacing:27) {
+            
+            VStack(alignment:.leading ,spacing: 11){
+                
+                Text(part.title)
+                    .font(.Patrick32)
+                
+                Rectangle()
+                    .foregroundColor(.clear)
+                    .frame(width: 290, height: 2)
+                    .background(.black)
+            }
+            
+            ForEach(part.chapters) { chapter in
+                if let globalChapterIndex = levelManager.chapters.firstIndex(where: { $0.id == chapter.id }) {
+                    ChapterButtonView(path: $path, chapterIndex: globalChapterIndex)
+                } else {
+                    Text("Error: Chapter '\(chapter.title)' missing from LevelManager")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
+            }
+        }
+    }
+}
+
+struct ChapterButtonView: View {
+    @Environment(LevelManager.self) private var levelManager
+    @Binding var path: NavigationPath
+
+    let chapterIndex: Int
+
+    var body: some View {
+        if levelManager.chapters.indices.contains(chapterIndex) {
+            let chapter = levelManager.chapters[chapterIndex]
+
+            Button {
+                levelManager.startGame(chapterIndex: chapterIndex)
+                path.append(NavigationTarget.game)
+            } label: {
+                Text(chapter.title)
+                    .font(.Patric29)
+                    .foregroundColor(chapter.isUnlocked ? .primary : .gray)
+                    .frame(maxHeight: 27)
+            }
+            .disabled(!chapter.isUnlocked)
+        } else {
+            Text("Error: Invalid Chapter Index \(chapterIndex)")
+                .foregroundColor(.red)
+                .font(.caption)
+        }
+    }
+}
+
+struct ChapterMenu: View {
+
     @Environment(LevelManager.self) private var levelManager
     @Binding var path: NavigationPath
     
     var body: some View {
-        VStack(spacing: 32) {
-
-            
-            // for loop para cada capitulo
-            ForEach(levelManager.chapters.indices, id: \.self) { index in
-                let chapter = levelManager.chapters[index]
-               
+        VStack {
+            VStack(spacing: 66){
                 
-                Button {
-                    //le mueve al level manager
-                    levelManager.startGame(chapterIndex: index)
-                    path.append(NavigationTarget.game)
-                    
-                } label: {
-                    Text(chapter.title)
-                        .font(.system(size: 32, weight: .medium))
-                        .foregroundColor(chapter.isUnlocked ? .primary : .gray)
-                }
-                .disabled(!chapter.isUnlocked)
-            }
-            
-        }
-        .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        path = NavigationPath()
-                    } label: {
-                        HStack {
-                            Image(systemName: "chevron.backward")
-                            Text("Menú Principal")
-                        }
+                Text("Capítulos")
+                    .font(.Patrick60)
+                    .frame(maxHeight: 50)
+                
+                VStack(spacing: 27) {
+                    ForEach(levelManager.Parts) { part in
+                        individualChapterMenu(part: part, path: $path)
                     }
                 }
             }
+            
+            Spacer()
+            
+            CustomButtonView(title: "back (temporal)") {
+                path.removeLast()
+            }
+            
+        }
+        .padding(20)
+        
+        
+        
     }
 }
+
 #Preview {
+    
     struct ChapterMenuPreviewContainer: View {
             @State var previewPath = NavigationPath()
             @State var previewLevelManager = LevelManager()
@@ -63,7 +120,5 @@ struct ChapterMenu: View {
                 .environment(previewLevelManager)
             }
         }
-
-        // Changed: Return an instance of the container struct
         return ChapterMenuPreviewContainer()
 }

@@ -8,11 +8,40 @@
 import SwiftUI
 
 struct Galleryview: View {
+    @Environment(LevelManager.self) private var levelManager
+    @Binding var path: NavigationPath
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            
+            VStack(spacing: 66){
+                
+                Text("Capítulos")
+                    .font(.Patrick60)
+                    .frame(maxHeight: 50)
+                
+                
+
+            }
+        }
+        .padding(20)
+        
+        
+        
     }
 }
 
 #Preview {
-    Galleryview()
+    struct GalleryviewPreviewContainer: View {
+        @State private var previewPath = NavigationPath()
+        @State private var previewLevelManager = LevelManager()
+
+        var body: some View {
+            NavigationStack(path: $previewPath) {
+                Galleryview(path: $previewPath)
+            }
+            .environment(previewLevelManager)
+        }
+    }
+    return GalleryviewPreviewContainer()
 }
