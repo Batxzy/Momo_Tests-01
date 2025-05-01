@@ -8,108 +8,77 @@
 import SwiftUI
 
 
-struct GalleryPageView: View {
+// Una extension para registrar los cambios en la rotacion
+extension CGSize {
+    func rotated(by angle: Angle) -> CGSize {
+        let r = CGFloat(angle.radians)
+        let newW = width  * cos(r) - height * sin(r)
+        let newH = width  * sin(r) + height * cos(r)
+        return CGSize(width: newW, height: newH)
+    }
+}
 
+struct GalleryPageView: View {
     let imageName: String
 
-    // Gesture States (Automatically Reset)
-    @GestureState private var gestureMagnification: CGFloat = 1.0
-    @GestureState private var gestureRotationAngle: Angle = .zero
-    @GestureState private var gestureDragOffset: CGSize = .zero
+    //estos contienen el valor para que swift registre el zoom
+    @GestureState private var gestureScale: CGFloat  = 1.0
+    @GestureState private var gestureRotation: Angle = .zero
 
-    // State for Double Tap Reset Anchor
-    @State private var scaleAnchor: CGFloat = 1.0
-    @State private var offsetAnchor: CGSize = .zero
-    @State private var rotationAnchor: Angle = .zero
+    // variables state para las animaciones
+    @State private var animScale: CGFloat  = 1.0
+    @State private var animRotation: Angle = .zero
 
-    // Computed Properties for Live Values
-    private var currentScale: CGFloat { gestureMagnification * scaleAnchor }
-    private var currentRotation: Angle { gestureRotationAngle + rotationAnchor }
-    private var currentOffset: CGSize {
-        let rotatedOffset = gestureDragOffset.rotated(by: -currentRotation)
-        return CGSize(width: offsetAnchor.width + rotatedOffset.width,
-                      height: offsetAnchor.height + rotatedOffset.height)
+    // propiedades computadas
+    private var currentScale: CGFloat {
+        gestureScale * animScale
     }
-
-    // Reset Function for Double Tap with Smoother Animation
-    private func resetImageStateWithAnimation() {
-        // Define the smoother, longer spring animation for the reset
-        // Increased response time, adjusted damping for smoothness
-        let resetSpring = Animation.spring(response: 0.55, dampingFraction: 0.7, blendDuration: 12)
-
-        withAnimation(resetSpring) {
-            scaleAnchor = 1.0
-            offsetAnchor = .zero
-            rotationAnchor = .zero
+    
+    private var currentRotation: Angle {
+        gestureRotation + animRotation
+    }
+    
+    //estos controlan la animacion del zoom
+    private let spring = Animation.spring(.smooth)
+    
+    //gestos
+    private var pinch: some Gesture {
+            MagnificationGesture()
+                .updating($gestureScale) { v, s, _ in s = v }
+                .onEnded { final in
+                    animScale = final
+                    withAnimation(spring) { animScale = 1.0 }
+                }
         }
+
+    private var rotate: some Gesture {
+        RotationGesture()
+            .updating($gestureRotation) { v, s, _ in s = v }
+            .onEnded { final in
+                animRotation = final
+                withAnimation(spring) { animRotation = .zero }
+            }
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let viewSize = geometry.size
+        GeometryReader { geo in
             Image(imageName)
                 .resizable()
+                .debugStroke(lineWidth: 5)
                 .scaledToFit()
                 .scaleEffect(currentScale)
                 .rotationEffect(currentRotation)
-                .offset(currentOffset)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(26)
-            
-                .contentShape(Rectangle())
-
-                // --- Gestures ---
-                .onTapGesture(count: 2) {
-                    resetImageStateWithAnimation() // Use the animated reset function
-                }
-                .simultaneousGesture(dragGesture(viewSize: viewSize))
-                .simultaneousGesture(magnificationGesture())
-                .simultaneousGesture(rotationGesture())
+                .padding(.bottom, 24)
+                .highPriorityGesture(
+                    pinch.simultaneously(with: rotate),
+                    including: .gesture
+                )
         }
         .clipped()
-        // Apply the same smoother spring animation when @GestureState variables reset
-        .animation(.spring(.smooth), value: gestureMagnification)
-        .animation(.spring(.smooth), value: gestureRotationAngle)
-        .animation(.spring(.smooth), value: gestureDragOffset)
-    }
-
-    // --- Gesture Definitions (Unchanged from previous version) ---
-
-    private func magnificationGesture() -> some Gesture {
-        MagnifyGesture()
-            .updating($gestureMagnification) { value, state, _ in state = value.magnification }
-            .onChanged { _ in scaleAnchor = 1.0 } // Keep anchor at identity
-    }
-
-    private func rotationGesture() -> some Gesture {
-        RotateGesture()
-            .updating($gestureRotationAngle) { value, state, _ in state = value.rotation }
-            .onChanged { _ in rotationAnchor = .zero } // Keep anchor at identity
-    }
-
-    private func dragGesture(viewSize: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .updating($gestureDragOffset) { value, state, _ in
-                if abs(currentScale - 1.0) > 0.05 { // Only drag if scaled
-                    state = value.translation
-                } else {
-                    state = .zero
-                }
-            }
-            .onChanged { _ in offsetAnchor = .zero } // Keep anchor at identity
     }
 }
-
-// Helper extension (unchanged)
-extension CGSize {
-    func rotated(by angle: Angle) -> CGSize {
-        let radians = CGFloat(angle.radians)
-        let newWidth = width * cos(radians) - height * sin(radians)
-        let newHeight = width * sin(radians) + height * cos(radians)
-        return CGSize(width: newWidth, height: newHeight)
-    }
-}
-
 
 struct ImageGalleryView: View {
 
@@ -135,11 +104,9 @@ struct ImageGalleryView: View {
                Color.black
                    .ignoresSafeArea()
 
-               VStack(spacing: 0) { // Use spacing 0 and control gaps with padding
-
-                   // Button Row: Aligned to the top-right
-                   HStack {
-                       Spacer() // Pushes button to the trailing edge
+               VStack(spacing: 0) {
+                   HStack() {
+                       Spacer()
                        Button {
                            dismiss()
                        } label: {
@@ -150,7 +117,7 @@ struct ImageGalleryView: View {
                                .padding(8) // Internal padding for easier tapping
                        }
                    }
-                   .debugStroke()
+                   .padding(.horizontal, 18)
                    
                    // TabView below the button
                    TabView(selection: $selectedIndex.animation(.smooth)) {
@@ -160,11 +127,9 @@ struct ImageGalleryView: View {
                        }
                    }
                    .tabViewStyle(.page(indexDisplayMode: .automatic))
-                   .ignoresSafeArea(edges: .bottom)
-                   .debugStroke()
-
+                   
+                   
                }
-
            }
            .toolbar(.hidden, for: .navigationBar)
            .statusBar(hidden: true)
