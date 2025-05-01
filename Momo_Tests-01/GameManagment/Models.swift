@@ -113,8 +113,3 @@ struct Part : Identifiable {
     var chapters: [Chapter]
 }
 
-enum NavigationTarget: Hashable {
-    case chapterMenu
-    case game
-}
-
