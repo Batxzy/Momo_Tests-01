@@ -96,10 +96,17 @@ import SwiftUI
             let chapter1Levels = [
                 
                 Level(id: UUID(),
+                      name: "1",
+                      content: AnyView(ChapterIntroView()),
+                      transition: .cameraPan,
+                      isCompleted: false,
+                     ),
+                
+                Level(id: UUID(),
                       name: "1_1",
                       content: AnyView(ImageScrollView(images: Scroll_1_1)),
                       transition: .cameraPan,
-                      isCompleted: false
+                      isCompleted: false,
                      ),
                 
                 Level(
@@ -178,6 +185,14 @@ import SwiftUI
             ]
             
             let chapter2Levels = [
+                
+                Level(id: UUID(),
+                      name: "2",
+                      content: AnyView(ChapterIntroView()),
+                      transition: .cameraPanV,
+                      isCompleted: false
+                     ),
+                
                 Level(id: UUID(),
                       name: "2_1",
                       content: AnyView(ImageScrollView(images: Scroll_2_1)),
@@ -271,9 +286,9 @@ import SwiftUI
             ]
             
             self.chapters = [
-                Chapter(id: UUID(), title: "Chapter 1", levels: chapter1Levels, isUnlocked: true),
-                Chapter(id: UUID(), title: "Chapter 2", levels: chapter2Levels, isUnlocked: false),
-                Chapter(id: UUID(), title: "Chapter 3", levels: chapter3Levels, isUnlocked: false)
+                Chapter(id: UUID(), title: "Rutina", levels: chapter1Levels, isUnlocked: true),
+                Chapter(id: UUID(), title: "Hombres Grises", levels: chapter2Levels, isUnlocked: false),
+                Chapter(id: UUID(), title: "Boveda del tiempo", levels: chapter3Levels, isUnlocked: false)
             ]
            
             

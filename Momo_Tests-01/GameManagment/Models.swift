@@ -11,13 +11,17 @@ enum LevelTransition {
     case fade
     case cameraPan
     case cameraPanF
-
+    case cameraPanV
+    case cameraPanNormalV
+    
     //** aqui se controla el tiempo entre transciones **//
     var duration: TimeInterval {
         switch self {
         case .fade: return 0.8
         case .cameraPan: return 2
         case .cameraPanF: return 2
+        case .cameraPanV: return 2
+        case .cameraPanNormalV : return 2
         }
     }
 }

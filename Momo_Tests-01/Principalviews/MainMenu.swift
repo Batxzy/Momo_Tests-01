@@ -13,7 +13,7 @@ struct MainMenu: View {
     
     var body: some View {
         
-        VStack(spacing: 15){
+        VStack(spacing: 36){
             
             Image("Reason")
                 .resizable()
@@ -23,15 +23,18 @@ struct MainMenu: View {
             
             
 
-            VStack(spacing: 32) {
+            VStack(spacing: 8) {
                 Button {
                     //inicia el nivel y te manda a la pantalla de capitulos
                     levelManager.startGame(chapterIndex: 0)
                     path.append(NavigationTarget.game)
                 } label: {
                     Text("Nueva partida")
-                        .font(.system(size: 32, weight: .medium))
+                        .font(.Patrick32)
+                        .foregroundColor(.black)
+
                 }
+                .padding(12)
                 
                 // te manda a la pestaña de capitulos
                 Button {
@@ -39,16 +42,18 @@ struct MainMenu: View {
                     path.append(NavigationTarget.chapterMenu) // Navigate to ChapterMenu
                 } label: {
                     Text("Capitulos")
-                        .font(.system(size: 32, weight: .medium))
+                        .font(.Patrick32)
+                        .foregroundColor(.black)
                 }
-
+                .padding(12)
+                
                 Text("Configuracion")
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundColor(.gray)
-
+                    .font(.Patrick32)
+                    .padding(12)
+                
                 Text("Galeria")
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundColor(.gray)
+                    .font(.Patrick32)
+                    .padding(12)
             }
         .navigationBarHidden(true)
         }

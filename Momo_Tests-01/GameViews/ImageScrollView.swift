@@ -22,7 +22,7 @@ struct ImageScrollView: View {
 //MARK: - view
     var body: some View {
         ZStack {
-            Color.black
+            Color.white
                 .edgesIgnoringSafeArea(.all)
             
             ScrollView(.vertical, showsIndicators: false) {

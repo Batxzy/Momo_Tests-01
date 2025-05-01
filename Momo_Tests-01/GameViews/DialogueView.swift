@@ -35,7 +35,7 @@ struct DialogueView: View {
         
         ZStack {
             // !! color temporal en lo que hay un fondo, sirve para que la transcion funcione y respete los bordes!!
-            Color.black
+            Color.white
                 .ignoresSafeArea()
             
             VStack(alignment:.center, spacing: 30){

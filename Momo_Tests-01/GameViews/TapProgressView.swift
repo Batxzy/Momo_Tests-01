@@ -65,7 +65,7 @@ struct TapProgressView: View {
 //MARK: - View
     var body: some View {
         ZStack {
-            Color.black
+            Color.white
                 .ignoresSafeArea()
             VStack {
                 // Tap area

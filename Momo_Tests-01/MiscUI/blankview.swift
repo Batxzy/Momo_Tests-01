@@ -24,4 +24,5 @@ struct blankview: View {
 
 #Preview {
     blankview()
+        .environment(LevelManager())
 }

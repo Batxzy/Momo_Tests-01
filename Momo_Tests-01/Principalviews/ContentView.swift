@@ -33,6 +33,17 @@ struct ContentView: View {
                 insertion: .move(edge: .trailing),
                 removal: .move(edge: .leading)
             )
+        case .cameraPanV:
+            return .asymmetric(
+                insertion: .move(edge: .bottom),
+                removal: .move(edge: .top)
+            )
+            
+        case .cameraPanNormalV:
+            return .asymmetric(
+                insertion: .move(edge: .bottom),
+                removal: .move(edge: .leading)
+            )
         }
     }
     
@@ -41,7 +52,7 @@ struct ContentView: View {
         ZStack {
             //llama al view del juego que le corresponde
             levelManager.currentLevel.content
-                // usa la trancion del nivel actual
+                // usa la transicion del nivel actual
                 .transition(getTransition(for: levelManager.currentLevel.transition))
                 .id(currentLevelIdentifier)
             
