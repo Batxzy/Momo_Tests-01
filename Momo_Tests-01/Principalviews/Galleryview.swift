@@ -64,8 +64,12 @@ struct GalleryPageView: View {
         GeometryReader { geo in
             Image(imageName)
                 .resizable()
-                .debugStroke(lineWidth: 5)
                 .scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.black, lineWidth: 4)
+                }
                 .scaleEffect(currentScale)
                 .rotationEffect(currentRotation)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -95,40 +99,40 @@ struct ImageGalleryView: View {
         self.selectedImageName = selectedImageName
         self.namespace = namespace
         _selectedIndex = State(initialValue: allImageNames.firstIndex(of: selectedImageName) ?? 0)
+        UIPageControl.appearance().currentPageIndicatorTintColor = .black
+        UIPageControl.appearance().pageIndicatorTintColor = UIColor.black.withAlphaComponent(0.1)
     }
 
     private var currentImageName: String { allImageNames[selectedIndex] }
 
     var body: some View {
            ZStack {
-               Color.black
+               Color.white
                    .ignoresSafeArea()
 
-               VStack(spacing: 0) {
+               VStack(spacing: -12) {
                    HStack() {
+                       
                        Spacer()
+                       
                        Button {
                            dismiss()
                        } label: {
-                           Image(systemName: "xmark.circle.fill")
-                               .font(.largeTitle) // Adjust size if needed
-                               // Modern foregroundStyle for two-tone symbols
-                               .foregroundStyle(.white, .black.opacity(0.6))
-                               .padding(8) // Internal padding for easier tapping
+                           Image(systemName: "xmark.circle")
+                               .font(.largeTitle)
+                               .foregroundStyle(.black)
+                               .padding(8)
                        }
                    }
-                   .padding(.horizontal, 18)
+                   .padding(.horizontal, 26)
                    
-                   // TabView below the button
                    TabView(selection: $selectedIndex.animation(.smooth)) {
                        ForEach(allImageNames.indices, id: \.self) { index in
                            GalleryPageView(imageName: allImageNames[index])
                                .tag(index)
                        }
                    }
-                   .tabViewStyle(.page(indexDisplayMode: .automatic))
-                   
-                   
+                   .tabViewStyle(.page(indexDisplayMode: .always))
                }
            }
            .toolbar(.hidden, for: .navigationBar)
@@ -139,17 +143,29 @@ struct ImageGalleryView: View {
 
 struct GridItemView: View {
     let imageName: String
-    
+
     var body: some View {
         ZStack {
-            Color.secondary.opacity(0.1)
+            Color.white
+            
             Image(imageName)
                 .resizable()
                 .scaledToFit()
-                .padding(8)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 4, style: .circular)
+                        .stroke(Color.primary, lineWidth: 3)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 4, style: .circular))
+            
+                .padding(16)
         }
-        .aspectRatio(1.0, contentMode: .fit)
-        .cornerRadius(8)
+        .aspectRatio(1, contentMode: .fit)
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .circular)
+                .stroke(Color.primary, lineWidth: 5)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .circular))
+       
     }
 }
 
@@ -159,13 +175,13 @@ struct Galleryviewtests: View {
        let imageNames = ["rectangle33","rectangle35","Shinji","rectangle1","rectangle2","rectangle3"]
 
        private let columns: [GridItem] = [
-           GridItem(.flexible(), spacing: 20),
-           GridItem(.flexible(), spacing: 20)
+           GridItem(.flexible(), spacing: 17),
+           GridItem(.flexible(), spacing: 17)
        ]
 
        var body: some View {
            ScrollView {
-                       LazyVGrid(columns: columns, spacing: 15) { // Adjust spacing
+                       LazyVGrid(columns: columns, spacing: 17) { // Adjust spacing
                            ForEach(imageNames, id: \.self) { name in
                                // Use a Button to trigger navigation path change
                                Button {
