@@ -30,7 +30,7 @@ struct CustomButtonView: View {
             
             .frame(minWidth: 98 ,maxHeight: 37)
             
-            .padding(16)
+            .padding(12)
             
             .background(
                 Color.white

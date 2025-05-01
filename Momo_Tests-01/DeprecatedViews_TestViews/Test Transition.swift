@@ -125,7 +125,7 @@ struct Test_ContentView: View {
     // Your existing views that you've already coded
     var body: some View {
         // Put your existing views in an array
-        let yourExistingViews: [AnyView] = [AnyView(TapProgressView(illustration: Image("rectangle33"))),AnyView(DustRemoverView2(
+        let yourExistingViews: [AnyView] = [AnyView(DustRemoverView2(
             backgroundImage: Image("rectangle33"),
             foregroundImage: Image("rectangle36"),
             completionThreshold: 90.0,

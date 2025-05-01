@@ -119,7 +119,7 @@ struct ImageGalleryView: View {
                            dismiss()
                        } label: {
                            Image(systemName: "xmark.circle")
-                               .font(.largeTitle)
+                               .font(.custom("system", size: 46))
                                .foregroundStyle(.black)
                                .padding(8)
                        }
@@ -149,24 +149,18 @@ struct GridItemView: View {
             Color.white
             
             Image(imageName)
-                .resizable()
-                .scaledToFit()
-                .overlay {
-                    RoundedRectangle(cornerRadius: 4, style: .circular)
-                        .stroke(Color.primary, lineWidth: 3)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                            .clipped()
+                    }
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 10, style: .circular)
+                            .stroke(Color.primary, lineWidth: 5)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .circular))
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .circular))
-            
-                .padding(16)
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .circular)
-                .stroke(Color.primary, lineWidth: 5)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .circular))
-       
-    }
 }
 
 struct Galleryviewtests: View {
@@ -181,26 +175,23 @@ struct Galleryviewtests: View {
 
        var body: some View {
            ScrollView {
-                       LazyVGrid(columns: columns, spacing: 17) { // Adjust spacing
-                           ForEach(imageNames, id: \.self) { name in
-                               // Use a Button to trigger navigation path change
-                               Button {
-                                   // Append the specific image detail target to the main path
-                                   path.append(NavigationTarget.imageDetail(
-                                       allNames: imageNames,
-                                       selectedName: name,
-                                       namespace: gridItemTransition // Pass the namespace
-                                   ))
-                               } label: {
-                                   GridItemView(imageName: name)
-                                       // Link this source view using its 'name' for the transition
-                                       .matchedTransitionSource(id: name, in: gridItemTransition)
-                               }
-                               .buttonStyle(.plain) // Use plain style to avoid default button appearance
-                           }
+               LazyVGrid(columns: columns, spacing: 17) {
+                   ForEach(imageNames, id: \.self) { name in
+                       Button {
+                           path.append(NavigationTarget.imageDetail(
+                               allNames: imageNames,
+                               selectedName: name,
+                               namespace: gridItemTransition
+                           ))
+                       } label: {
+                           GridItemView(imageName: name)
+                               .matchedTransitionSource(id: name, in: gridItemTransition)
                        }
-                       .padding() // Padding for the grid content
+                       .buttonStyle(.plain)
                    }
+               }
+               .padding()
+           }
        }
 }
 
@@ -220,6 +211,10 @@ struct Galleryview: View {
                 
                 Galleryviewtests(path: $path)
 
+            }
+            
+            CustomButtonView(title: "atras (temp)") {
+                path.removeLast()
             }
         }
         .padding(20)

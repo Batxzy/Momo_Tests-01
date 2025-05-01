@@ -129,9 +129,7 @@ import SwiftUI
                 Level(
                     id: UUID(),
                     name: "Tap Game",
-                    content: AnyView(TapProgressView(
-                        illustration: Image("rectangle33"))
-                    ),
+                    content: AnyView(TapProgressView(FirstIllustration: Image("rectangle33"), SecondIllustration: Image("rectangle35"))),
                     transition: .cameraPan,
                     isCompleted: false
                 ),

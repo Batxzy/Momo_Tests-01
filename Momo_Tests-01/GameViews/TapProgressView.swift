@@ -2,11 +2,13 @@ import SwiftUI
 
 struct TapProgressView: View {
     //MARK: - vairbales y cosistas  estado
-    var illustration : Image
-
-    private let ilustrationWidth: CGFloat = 340
+    var FirstIllustration : Image
     
-    private let ilustrationHeight: CGFloat = 600
+    var SecondIllustration : Image
+    
+    private let ilustrationWidth: CGFloat = 320
+    
+    private let ilustrationHeight: CGFloat = 580
         
     // Track progress from 0 to 1
     @State private var progress: Double = 0.0
@@ -14,7 +16,12 @@ struct TapProgressView: View {
     @State private var isComplete: Bool = false
     // Timer to decrease progress
     @State private var timer: Timer? = nil
+    // Track if the button should be shown after completion
+    @State private var showButton: Bool = false
     
+    // state para animaciones
+    @State private var isTapped: Bool = false
+
     // Get the level manager from the environment
     @Environment(LevelManager.self) private var levelManager
     
@@ -24,6 +31,7 @@ struct TapProgressView: View {
     private let decrementAmount: Double = 0.03
     // Timer interval
     private let timerInterval: TimeInterval = 0.1
+    
 //MARK: - Funciones
     private func handleTap() {
         guard !isComplete else { return }
@@ -33,22 +41,32 @@ struct TapProgressView: View {
             progress = min(progress + tapIncrement, 1.0)
         }
         
+        isTapped = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            isTapped = false
+        }
+        
         if progress >= 1.0 {
-            completeGame()
+            markAsComplete()
         }
     }
     
-    private func completeGame() {
+    private func markAsComplete() {
         isComplete = true
         stopTimer()
         
-        levelManager.completeLevel()
+        // Add delay before showing the button
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation {
+                showButton = true
+            }
+        }
     }
     
     private func stopTimer() {
          timer?.invalidate()
          timer = nil
-         }
+    }
     
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) { _ in
@@ -60,65 +78,98 @@ struct TapProgressView: View {
                 }
             }
         }
-        
     }
 //MARK: - View
     var body: some View {
-        ZStack {
-            Color.white
-                .ignoresSafeArea()
-            VStack {
-                // Tap area
-                
-                illustration
+    ZStack {
+        Color.white
+            .ignoresSafeArea()
+        
+        // -- ILUSTRACION Y TAP -- //
+        VStack(spacing: 24){
+            
+            ZStack {
+                FirstIllustration
                     .resizable()
                     .scaledToFill()
                     .frame(width: ilustrationWidth, height: ilustrationHeight)
                     .clipped()
+                    .opacity(isComplete ? 0 : 1)
                 
-                // Progress bar with modern animation
+                SecondIllustration
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: ilustrationWidth, height: ilustrationHeight)
+                    .clipped()
+                    .opacity(isComplete ? 1 : 0)
+            }
+            .animation(.easeInOut(duration: 0.7), value: isComplete)
+            
+            // -- barra de progreso y boton --//
+            VStack(spacing: 24) {
+                
+                // -- barra de progreso --//
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
-                        // Background of the progress bar
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(height: 20)
+                            .fill(isComplete ? Color.green : Color.red)
+                            .frame(width: geometry.size.width * CGFloat(progress), height: 47)
                         
-                        // Filled portion of the progress bar
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(isComplete ? Color.green : Color.blue)
-                            .frame(width: geometry.size.width * CGFloat(progress), height: 20)
+                        Rectangle()
+                            .foregroundColor(.clear)
+                            .frame(width: 300, height: 47)
+                            .background(
+                                Image("Bar")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 300, height: 47)
+                                    .clipped()
+                            )
                     }
                 }
-                .frame(height: 20)
-                .frame (width: 300)
-                .padding()
+                .frame(width: 300,height: 47)
                 
-                //tapable area
-                Rectangle()
-                    .fill(Color.red)
-                    .aspectRatio(1.0, contentMode: .fit)
-                    .frame(width: 80, height: 80)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        handleTap()
-                    }
-                    .padding(15)
+                // -- if para el boton o la barra --//
+                   if isComplete {
+                       if showButton {
+                           CustomButtonView(title: "siguiente") {
+                               levelManager.completeLevel()
+                           }
+                           .transition(.opacity)
+                       } else {
+                           Color.clear
+                               .frame(height: 44)
+                       }
+                   }
+                    else {
+                        
+                       Image("Listen")
+                           .resizable()
+                           .scaledToFill()
+                           .frame(width: 100, height: 100)
+                           .contentShape(Rectangle())
+                           .scaleEffect(isTapped ? 0.80 : 1.0)
+                           .opacity(isTapped ? 0.75 : 1.0)
+                           .animation(.spring(duration: 0.3, bounce: 0.4), value: isTapped)
+                           .onTapGesture(perform: handleTap)
+                           .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                        }
+                }
+                .frame(height: 150,alignment: .top)
+                .animation(.smooth, value: isComplete)
+            
+                }
             }
-            .onAppear {
-                startTimer()
-            }
-            .onDisappear {
-                stopTimer()
-            }
+        .onAppear {
+            startTimer()
+        }
+        .onDisappear {
+            stopTimer()
         }
     }
-    
-  
-    
-   
 }
+
 #Preview {
- TapProgressView(illustration: Image("rectangle33"))
+    TapProgressView(FirstIllustration: Image("rectangle33"), SecondIllustration: Image("rectangle35"))
         .environment(LevelManager())
 }
