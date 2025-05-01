@@ -26,8 +26,6 @@ enum LevelTransition {
     }
 }
 
-
-// Animation style options using modern SwiftUI animations
 enum AnimationStyle {
     case spring
     case smooth
@@ -56,6 +54,13 @@ enum AnimationStyle {
             return .linear(duration: duration)
         }
     }
+}
+
+enum NavigationTarget: Hashable {
+    case chapterMenu
+    case game
+    case gallery
+    case imageDetail(allNames: [String], selectedName: String, namespace: Namespace.ID)
 }
 
 struct Level: Identifiable {
@@ -102,7 +107,9 @@ struct Chapter: Identifiable {
     var isUnlocked: Bool
 }
 
-enum NavigationTarget: Hashable {
-    case chapterMenu
-    case game
+struct Part : Identifiable {
+    let id: UUID
+    let title: String
+    var chapters: [Chapter]
 }
+

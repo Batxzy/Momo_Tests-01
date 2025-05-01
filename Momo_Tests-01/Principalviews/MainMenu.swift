@@ -13,12 +13,12 @@ struct MainMenu: View {
     
     var body: some View {
         
-        VStack(spacing: 36){
+        VStack(spacing: 30){
             
             Image("Reason")
                 .resizable()
                 .scaledToFill()
-                .frame(width:280,height: 420 )
+                .frame(width:288,height: 420 )
                 .clipped()
             
             
@@ -47,15 +47,21 @@ struct MainMenu: View {
                 }
                 .padding(12)
                 
+                Button {
+                    path.append(NavigationTarget.gallery)
+                } label: {
+                    Text("Galeria")
+                        .font(.Patrick32)
+                        .foregroundColor(.black)
+                }
+                .padding(12)
+                
                 Text("Configuracion")
                     .font(.Patrick32)
                     .padding(12)
-                
-                Text("Galeria")
-                    .font(.Patrick32)
-                    .padding(12)
+            
             }
-        .navigationBarHidden(true)
+                .navigationBarHidden(true)
         }
     }
 }
@@ -75,8 +81,16 @@ struct MainMenu: View {
                                 .navigationTitle("Game Preview")
                                 .navigationBarBackButtonHidden(true) // Hide back button in preview destination
                         case .chapterMenu:
-                            Text("Preview: Navigated to Chapter Menu")
-                                .navigationTitle("Chapters Preview")
+                                                    Text("Preview: Navigated to Chapter Menu")
+                                                        .navigationTitle("Chapters Preview")
+                                                case .gallery:
+                                                     // Show the actual Galleryview in preview if possible
+                                                     Galleryview(path: $previewPath)
+                                                        .navigationTitle("Gallery Preview")
+                                                case .imageDetail(let names, let selected, _):
+                                                     // Show a representation of the image detail view
+                                                     Text("Preview: Image Detail for \(selected) (\(names.count) total)")
+                                                        .navigationTitle("Image Detail Preview")
                         }
                     }
             }

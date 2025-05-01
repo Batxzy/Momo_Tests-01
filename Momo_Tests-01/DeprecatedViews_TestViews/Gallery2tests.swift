@@ -1,14 +1,14 @@
 //
-//  Galleryview.swift
+//  Gallery2tests.swift
 //  Momo_Tests-01
 //
-//  Created by Jose julian Lopez on 14/04/25.
+//  Created by Jose julian Lopez on 01/05/25.
 //
 
 import SwiftUI
 
 
-struct GalleryPageView: View {
+struct GalleryPageView3: View {
 
     let imageName: String
 
@@ -100,18 +100,9 @@ struct GalleryPageView: View {
     }
 }
 
-// Helper extension (unchanged)
-extension CGSize {
-    func rotated(by angle: Angle) -> CGSize {
-        let radians = CGFloat(angle.radians)
-        let newWidth = width * cos(radians) - height * sin(radians)
-        let newHeight = width * sin(radians) + height * cos(radians)
-        return CGSize(width: newWidth, height: newHeight)
-    }
-}
 
 
-struct ImageGalleryView: View {
+struct ImageGalleryView3: View {
 
     let allImageNames: [String]
     let selectedImageName: String
@@ -172,7 +163,7 @@ struct ImageGalleryView: View {
 }
 
 
-struct GridItemView: View {
+struct GridItemView3: View {
     let imageName: String
     
     var body: some View {
@@ -188,7 +179,7 @@ struct GridItemView: View {
     }
 }
 
-struct Galleryviewtests: View {
+struct Galleryviewtests3: View {
     @Namespace private var gridItemTransition
     @Binding var path: NavigationPath
        let imageNames = ["rectangle33","rectangle35","Shinji","rectangle1","rectangle2","rectangle3"]
@@ -224,7 +215,7 @@ struct Galleryviewtests: View {
 }
 
 
-struct Galleryview: View {
+struct Galleryview3: View {
     @Environment(LevelManager.self) private var levelManager
     @Binding var path: NavigationPath
     
@@ -285,5 +276,4 @@ struct Galleryview: View {
     }
     return GalleryviewPreviewContainer()
 }
-
 
