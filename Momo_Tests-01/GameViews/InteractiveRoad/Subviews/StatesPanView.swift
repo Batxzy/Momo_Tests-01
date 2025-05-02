@@ -24,119 +24,136 @@ struct DialogueInfo {
 }
 
 
-// A class to manage story state progression
+import SwiftUI
+
 @Observable
 class StoryStateManager {
-    
-    // State properties
+    // MARK: - State Properties
     var offsetPercentage: Double = 0.0
-    var currentStateIndex: Int = 0
+    var currentStateIndex: Int = 0 {
+        didSet {
+            if currentStateIndex != oldValue {
+                printStateTransition(from: oldValue, to: currentStateIndex)
+            }
+        }
+    }
+    
     var isAnimating: Bool = false
+    
     var showingDialogue: Bool = false
     var canAdvanceAfterDialogue: Bool = false
     var dialogueElementIndex: Int? = nil
     
-    // Story state definitions
+    // MARK: - Configuration
+    let animationDuration: Double = 4.0
+    let dialogueAdvanceDelay: Double = 3.0
+    private var dialogueTimer: Timer?
+    
+    // MARK: - Story States
     let states: [StoryState] = [
         // State 0: Initial state, no dialogue
         StoryState(offsetPercentage: 0.0, dialogueInfo: nil),
         
         // State 1: First position with dialogue from element 0
-        StoryState(offsetPercentage: 0.25, dialogueInfo: DialogueInfo(
-            elementIndex: 0,
-            dialogueImageName: "Momo",
-            position: CGPoint(x: 0.5, y: 0.4),
-            size: CGSize(width: 280, height: 200)
-        )),
+        StoryState(offsetPercentage: 0.25, dialogueInfo: nil),
         
         // State 2: Second position, no dialogue
         StoryState(offsetPercentage: 0.60, dialogueInfo: nil),
         
         // State 3: Final position with dialogue from element 2
-        StoryState(offsetPercentage: 1.0, dialogueInfo: DialogueInfo(
-            elementIndex: 2,
-            dialogueImageName: "Momo",
-            position: CGPoint(x: 0.5, y: 0.4),
-            size: CGSize(width: 280, height: 200)
-        ))
+        StoryState(offsetPercentage: 1.0, dialogueInfo: nil)
     ]
     
-    // Animation constants
-    let animationDuration: Double = 4.0
-    private var dialogueTimer: Timer?
+    // MARK: - Initialization
+    init() {
+        print("🔄 StoryStateManager initialized at state \(currentStateIndex)")
+    }
     
-    // Returns the current state
+    // MARK: - Computed Properties
     var currentState: StoryState {
         states[currentStateIndex]
     }
     
-    // Determines if a specific element is interactive in the current state
+    // MARK: - Interaction Logic
     func isElementInteractive(_ elementIndex: Int) -> Bool {
         guard currentState.hasDialogue, !showingDialogue else { return false }
         return currentState.dialogueInfo?.elementIndex == elementIndex
     }
     
-    // Handle background tap for state progression
-    func handleBackgroundTap() {
-        // If showing dialogue and can advance, hide it
-        if showingDialogue && canAdvanceAfterDialogue {
-            hideDialogue()
-            return
-        }
-        
-        // If showing dialogue but not ready to advance, do nothing
-        if showingDialogue && !canAdvanceAfterDialogue {
-            return
-        }
-        
-        // Otherwise, try to advance to the next state
-        if !isAnimating {
-            advanceToNextState()
-        } else {
-            print("🚫 Animation in progress, tap ignored")
-        }
-    }
-    
-    // Handle element taps that might trigger dialogue
     func handleElementTap(elementIndex: Int) {
-        // Only proceed if this element should trigger dialogue
+        print("👆 Element \(elementIndex) tapped")
+        
         guard !showingDialogue &&
               currentState.hasDialogue &&
               currentState.dialogueInfo?.elementIndex == elementIndex else {
             return
         }
         
+        print("🎯 Element \(elementIndex) triggered dialogue")
         showDialogue(elementIndex: elementIndex)
     }
     
-    // Show dialogue with a timer for progression
+    func handleBackgroundTap() {
+        if showingDialogue && canAdvanceAfterDialogue {
+            hideDialogue()
+            
+            if !currentState.hasDialogue {
+                tryAdvanceToNextState()
+            }
+            return
+        }
+        
+        if showingDialogue && !canAdvanceAfterDialogue {
+            print("⏳ Please wait...")
+            return
+        }
+        
+        if currentState.hasDialogue && !showingDialogue {
+            print("👆 Please tap a highlighted element first")
+            return
+        }
+        
+        tryAdvanceToNextState()
+    }
+    
+    private func tryAdvanceToNextState() {
+        if !isAnimating {
+            advanceToNextState()
+        } else {
+            print("🚫 Animation in progress - tap ignored")
+        }
+    }
+    
     private func showDialogue(elementIndex: Int) {
         showingDialogue = true
         dialogueElementIndex = elementIndex
         canAdvanceAfterDialogue = false
         
-        // Start timer to enable advancement after delay
+        print("🗨️ Showing dialogue for element \(elementIndex)")
+        
         dialogueTimer?.invalidate()
-        dialogueTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
-            self?.canAdvanceAfterDialogue = true
-            print("⏱️ Dialogue timer completed - ready to advance")
+        dialogueTimer = Timer.scheduledTimer(withTimeInterval: dialogueAdvanceDelay, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            
+            self.canAdvanceAfterDialogue = true
+            print("⏱️ Ready for next tap")
         }
     }
     
-    // Hide dialogue and clean up
     private func hideDialogue() {
         dialogueTimer?.invalidate()
         dialogueTimer = nil
         showingDialogue = false
         dialogueElementIndex = nil
         canAdvanceAfterDialogue = false
+        
+        print("🗨️ Dialogue dismissed")
     }
     
-    // Advance to the next state with animation
     private func advanceToNextState() {
         let lastStateIndex = states.count - 1
         guard currentStateIndex < lastStateIndex else {
-            print("🏁 Already at the last state")
+            print("🏁 Already at last state (\(lastStateIndex))")
             return
         }
         
@@ -144,24 +161,31 @@ class StoryStateManager {
         let nextStateIndex = currentStateIndex + 1
         let targetState = states[nextStateIndex]
         
-        print("⏩ Advancing to state \(nextStateIndex)")
-        
-        // Update state index first
         currentStateIndex = nextStateIndex
         
-        // Start animation of the offset
         withAnimation(.easeInOut(duration: animationDuration)) {
             offsetPercentage = targetState.offsetPercentage
         }
         
-        // Schedule the animation lock release
         DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) { [weak self] in
-            self?.isAnimating = false
-            print("✅ Animation complete")
+            guard let self = self else { return }
+            
+            self.isAnimating = false
+            print("✅ Animation for state \(self.currentStateIndex) completed")
         }
     }
     
-    // Clean up any resources when the manager is deinitialized
+    // MARK: - Simple Debug Functions
+    
+    /// Print a clear state transition message
+    private func printStateTransition(from oldState: Int, to newState: Int) {
+        print("------------------------")
+        print("🔀 STATE CHANGE: \(oldState) → \(newState)")
+        print("📊 State \(newState) of \(states.count-1)")
+        print("🔢 Offset: \(states[newState].offsetPercentage)")
+        print("------------------------")
+    }
+    
     deinit {
         dialogueTimer?.invalidate()
     }

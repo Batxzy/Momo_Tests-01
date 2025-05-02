@@ -110,6 +110,7 @@ struct WideImageView: View {
                                         position: elementPositions[index],
                                         imageWidth: imageSize.width,
                                         frameHeight: frameHeight,
+
                                         elementIndex: index,
                                         isInteractive: stateManager.isElementInteractive(index),
                                         onTap: stateManager.handleElementTap
@@ -127,17 +128,6 @@ struct WideImageView: View {
                            )
                            .debugStroke(.green)
                         
-                        if stateManager.showingDialogue, let dialogueInfo = stateManager.currentState.dialogueInfo {
-                                                DialogueViewWide(
-                                                    imageName: dialogueInfo.dialogueImageName,
-                                                    position: CGPoint(
-                                                        x: frameGeometry.size.width * dialogueInfo.position.x,
-                                                        y: frameGeometry.size.height * dialogueInfo.position.y
-                                                    ),
-                                                    size: dialogueInfo.size,
-                                                    canAdvance: stateManager.canAdvanceAfterDialogue
-                                                )
-                                            }
                                             
                         // Tap overlay for background taps
                         TapOverlayView(stateManager: stateManager)

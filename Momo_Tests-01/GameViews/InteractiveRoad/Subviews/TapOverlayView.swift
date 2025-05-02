@@ -7,13 +7,8 @@
 
 import SwiftUI
 
-// MARK: - Tap overlay
-import SwiftUI
-
-import SwiftUI
-
 struct TapOverlayView: View {
-    var stateManager: StoryStateManager
+    let stateManager: StoryStateManager
     
     var body: some View {
         Color.clear
@@ -21,5 +16,6 @@ struct TapOverlayView: View {
             .onTapGesture {
                 stateManager.handleBackgroundTap()
             }
+            .allowsHitTesting(true) // Explicitly enable hit testing
     }
 }
