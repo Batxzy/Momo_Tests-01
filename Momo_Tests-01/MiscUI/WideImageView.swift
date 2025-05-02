@@ -1,39 +1,102 @@
 import SwiftUI
 
+
+//MARK: - view extensions
+//usado para pasar el tamaño del view grande del geometry al main view
+struct SizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}
+
+// Extensión en View que permite leer el tamaño usando un modificador.
+extension View {
+    func readSize(onChange: @escaping (CGSize) -> Void) -> some View {
+        self
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .preference(key: SizePreferenceKey.self, value: geometry.size)
+                }
+            )
+            .onPreferenceChange(SizePreferenceKey.self, perform: onChange)
+    }
+}
+
+
 struct WideImageView: View {
-    // MARK: - Properties
+// MARK: - Properties
+    
     var image = Image("wide")
+    
     @State private var offsetPercentage = 0.0
+    
+    //guarda las dimenciones de la imagen del fondo
     @State private var imageSize = CGSize.zero
     
     // Layout constants
     private let frameWidth: CGFloat = 343
     private let frameHeight: CGFloat = 733
     
-    // Position rectangles relative to the image content (percentages)
-    // These positions will be maintained during scrolling
-    private let rect1ImagePosition = CGPoint(x: 0.25, y: 0.3)  // 45% from left edge of image
-    private let rect2ImagePosition = CGPoint(x: 0.60, y: 0.6)  // 45% from left edge of image
+    // posiciones de los personajes
+    private let rect1ImagePosition = CGPoint(x: 0.25, y: 0.3)
+    
+    private let rect2ImagePosition = CGPoint(x: 0.60, y: 0.6)
+    
     private let rect3ImagePosition = CGPoint(x: 0.90, y: 0.7)
+    
+    // MARK: - setup
+    
+    private func calculateOffset() -> CGFloat {
+        let excessWidth = imageSize.width - frameWidth
+        return excessWidth > 0 ? -excessWidth * offsetPercentage : 0
+    }
+    
+    private var sliderControls: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("posicion")
+                .font(.callout)
+                .foregroundColor(.secondary)
+            
+            Slider(
+                value: $offsetPercentage,
+                in: 0...1,
+                step: 0.01
+            )
+            .tint(.blue)
+            .padding(.horizontal, 4)
+            .onChange(of: offsetPercentage) { newValue in
+                print("🎚️ Slider: \(String(format: "%.2f", newValue))")
+                print("➡️ Offset: \(String(format: "%.1f", calculateOffset()))")
+                
+                // Print current rectangle positions for debugging
+                let rect1X = imageSize.width * rect1ImagePosition.x + calculateOffset()
+                print("📍 Rect1 current position: \(String(format: "%.1f", rect1X))")
+            }
+            
+            HStack {
+                Text("Left").font(.caption)
+                Spacer()
+                Text("Right").font(.caption)
+            }
+            .foregroundColor(.secondary)
+        }
+        .frame(width: frameWidth)
+    }
+    
     
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 20) {
-            // Main container
-            ZStack(alignment: .topLeading) {
+        VStack(spacing: 2) {
                 GeometryReader { frameGeometry in
-                    ZStack(alignment: .topLeading) {
-                        // Base image with size tracking
-                        image
+                    ZStack() {
+                            image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .background(
-                                GeometryReader { imageGeometry in
-                                    Color.clear
-                                        .preference(key: SizePreferenceKey.self, value: imageGeometry.size)
-                                }
-                            )
-                            .onPreferenceChange(SizePreferenceKey.self) { size in
+                            
+                            //aqui leo las dimensiones del view y se las paso al geometry size
+                            .readSize { size in
                                 if imageSize != size {
                                     imageSize = size
                                     print("📏 Image size: \(size.width) × \(size.height)")
@@ -41,7 +104,6 @@ struct WideImageView: View {
                                 }
                             }
                         
-                      
                         RoundedRectangle(cornerRadius: 8)
                             .fill(.ultraThinMaterial)
                             .overlay(
@@ -77,7 +139,6 @@ struct WideImageView: View {
                                 y: frameHeight * rect2ImagePosition.y
                             )
                         
-                        
                         RoundedRectangle(cornerRadius: 12)
                             .fill(.ultraThinMaterial)
                             .overlay(content: {
@@ -98,12 +159,9 @@ struct WideImageView: View {
                     .offset(x: calculateOffset())
                 }
                 .frame(width: frameWidth, height: frameHeight)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                )
-            }
+                .clipped()
+                .debugStroke()
+            
             
             // Long press animation control
            LongPressAnimationControl(
@@ -117,48 +175,11 @@ struct WideImageView: View {
         }
     }
     
-    // MARK: - Components
-    private var sliderControls: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("posicion")
-                .font(.callout)
-                .foregroundColor(.secondary)
-            
-            Slider(
-                value: $offsetPercentage,
-                in: 0...1,
-                step: 0.01
-            )
-            .tint(.blue)
-            .padding(.horizontal, 4)
-            .onChange(of: offsetPercentage) { newValue in
-                print("🎚️ Slider: \(String(format: "%.2f", newValue))")
-                print("➡️ Offset: \(String(format: "%.1f", calculateOffset()))")
-                
-                // Print current rectangle positions for debugging
-                let rect1X = imageSize.width * rect1ImagePosition.x + calculateOffset()
-                print("📍 Rect1 current position: \(String(format: "%.1f", rect1X))")
-            }
-            
-            HStack {
-                Text("Left").font(.caption)
-                Spacer()
-                Text("Right").font(.caption)
-            }
-            .foregroundColor(.secondary)
-        }
-        .frame(width: frameWidth)
-    }
-    
-    // MARK: - Helper Methods
-    private func calculateOffset() -> CGFloat {
-        let excessWidth = imageSize.width - frameWidth
-        return excessWidth > 0 ? -excessWidth * offsetPercentage : 0
-    }
 }
 
-// MARK: - Long Press Animation Control
+// MARK: - Button
 struct LongPressAnimationControl: View {
+    
     @Binding var offsetPercentage: Double
     @State private var isPressed = false
     @State private var animationPhase = 0
@@ -228,13 +249,8 @@ struct LongPressAnimationControl: View {
         }
     }
 }
-// MARK: - Size Preference Key
-struct SizePreferenceKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}
+
+
 
 #Preview {
     WideImageView()

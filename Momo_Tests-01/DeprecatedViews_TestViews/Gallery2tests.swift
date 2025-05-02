@@ -228,7 +228,7 @@ struct Galleryview3: View {
                     .font(.Patrick60)
                     .frame(maxHeight: 50)
                 
-                Galleryviewtests(path: $path)
+                Galleryview3(path: $path)
 
             }
         }

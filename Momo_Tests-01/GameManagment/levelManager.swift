@@ -146,7 +146,7 @@ import SwiftUI
                     id: UUID(),
                     name: "Drag Game",
                     content: AnyView(DragProgressView(
-                        swipeSensitivity: 8.0, Ilustration: Image("reason"))
+                        swipeSensitivity: 8.0, Ilustration: Image("Reason"))
                     ),
                     transition: .cameraPan,
                     isCompleted: false
@@ -188,7 +188,7 @@ import SwiftUI
                 Level(id: UUID(),
                       name: "2",
                       content: AnyView(ChapterIntroView()),
-                      transition: .cameraPanV,
+                      transition: .cameraPan,
                       isCompleted: false
                      ),
                 
@@ -253,10 +253,24 @@ import SwiftUI
                       transition: .cameraPan,
                       isCompleted: false
                      ),
+                Level(id: UUID(),
+                      name: "blank",
+                      content: AnyView(blankview()),
+                      transition: .cameraPan,
+                      isCompleted: false)
+                
                 
             ]
             
             let chapter3Levels = [
+                
+                Level(id: UUID(),
+                      name: "3",
+                      content: AnyView(ChapterIntroView()),
+                      transition: .cameraPan,
+                      isCompleted: false,
+                     ),
+                
                 Level(id: UUID(),
                       name: "TaskLsit",
                       content: AnyView(TaskListView()),
@@ -280,36 +294,86 @@ import SwiftUI
                       content: AnyView(ImageScrollView(images:Scroll_2_4)),
                       transition: .cameraPan,
                       isCompleted: false
-                     )
+                     ),
+                Level(id: UUID(),
+                      name: "blank",
+                      content: AnyView(blankview()),
+                      transition: .cameraPan,
+                      isCompleted: false)
             ]
             
             let chapter4Levels = [
                 Level(id: UUID(),
-                      name: "3_1",
-                      content: AnyView(ImageScrollView(images: Scroll_3_1)),
+                      name: "4",
+                      content: AnyView(ChapterIntroView()),
                       transition: .cameraPan,
-                      isCompleted: false
+                      isCompleted: false,
                      ),
-              
+                
                 Level(id: UUID(),
-                      name: "Tap_3",
-                      content: AnyView(ImageTap(iulstration:Image ("Reason"))),
+                      name: "4_1",
+                      content: AnyView(ImageScrollView(images: Scroll_4_1)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                Level(
+                    id: UUID(),
+                    name: "Tap Game",
+                    content: AnyView(TapProgressView(FirstIllustration: Image("rectangle33"), SecondIllustration: Image("rectangle35"))),
+                    transition: .cameraPan,
+                    isCompleted: false
+                ),
+                Level(id: UUID(),
+                      name: "4_2",
+                      content: AnyView(ImageScrollView(images: Scroll_4_2)),
                       transition: .cameraPan,
                       isCompleted: false
                      ),
                 Level(id: UUID(),
-                      name: "3_2",
-                      content: AnyView(ImageScrollView(images: Scroll_3_2)),
+                      name: "4_3",
+                      content: AnyView(ImageScrollView(images: Scroll_4_3)),
                       transition: .cameraPan,
                       isCompleted: false
                      ),
+                Level(id: UUID(),
+                      name: "Tap_4-1",
+                      content: AnyView(ImageTap(iulstration:Image ("rectangle35"))),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                Level(id: UUID(),
+                      name: "4_4",
+                      content: AnyView(ImageScrollView(images: Scroll_4_4)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     ),
+                Level(id: UUID(),
+                      name: "blank",
+                      content: AnyView(blankview()),
+                      transition: .cameraPan,
+                      isCompleted: false)
+            ]
+            
+            let chapter5Levels = [
+                Level(id: UUID(),
+                      name: "5",
+                      content: AnyView(ChapterIntroView()),
+                      transition: .cameraPan,
+                      isCompleted: false,
+                     ),
+                Level(id: UUID(),
+                      name: "5_1",
+                      content: AnyView(ImageScrollView(images: Scroll_5_1)),
+                      transition: .cameraPan,
+                      isCompleted: false
+                     )
             ]
             
             let Chapter1 = Chapter(id: UUID(), title: "Rutina", levels: chapter1Levels, isUnlocked: true)
             let Chapter2 = Chapter(id: UUID(), title: "Hombres Grises", levels: chapter2Levels, isUnlocked: false)
             let Chapter3 = Chapter(id: UUID(), title: "Eficiencia", levels: chapter3Levels, isUnlocked: false)
             let Chapter4 = Chapter(id: UUID(), title: "Boveda del tiempo", levels: chapter4Levels, isUnlocked: false)
-            let Chapter5 = Chapter(id: UUID(), title: "Amigos", levels: chapter4Levels, isUnlocked: false)
+            let Chapter5 = Chapter(id: UUID(), title: "Amigos", levels: chapter5Levels, isUnlocked: false)
             
             self.chapters = [
                Chapter1,Chapter2,Chapter3,Chapter4,Chapter5
@@ -318,7 +382,7 @@ import SwiftUI
             
             let Part1 = Part(id: UUID(), title: "Parte 1", chapters: [Chapter1])
             let Part2 = Part(id: UUID(), title: "Parte 2", chapters: [Chapter2,Chapter3])
-            let Part3 = Part(id: UUID(), title: "Parte 3", chapters: [Chapter4])
+            let Part3 = Part(id: UUID(), title: "Parte 3", chapters: [Chapter4, Chapter5])
             
             self.Parts = [Part1,Part2,Part3]
             
