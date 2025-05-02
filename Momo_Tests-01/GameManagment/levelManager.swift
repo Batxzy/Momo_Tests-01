@@ -98,7 +98,7 @@ import SwiftUI
                 
             Level(id: UUID(),
                   name: "1",
-                  content: AnyView(WideImageView(image: Image("wide"))),
+                  content: AnyView(WideImageView()),
                   transition: .cameraPan,
                   isCompleted: false,
                  ),
