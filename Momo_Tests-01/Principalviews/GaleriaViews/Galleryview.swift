@@ -8,9 +8,6 @@
 import SwiftUI
 
 
-
-
-
 struct GridItemView: View {
     let imageName: String
 
