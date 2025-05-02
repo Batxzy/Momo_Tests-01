@@ -32,12 +32,13 @@ struct WideImageView: View {
 // MARK: - Properties
     
     var image = Image("wide")
-    var stateManager = StoryStateManager()
+    
+    @Environment(LevelManager.self) private var levelManager
+    @State private var stateManager = StoryStateManager()
 
     //guarda las dimenciones de la imagen del fondo
     @State private var imageSize = CGSize.zero
-    
-    
+
     // Layout constants
     private let frameWidth: CGFloat = 343
     private let frameHeight: CGFloat = 733
@@ -85,9 +86,8 @@ struct WideImageView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 2) {
-            
-            
+        VStack() {
+
                 GeometryReader { frameGeometry in
                     ZStack(){
                         image
@@ -124,23 +124,23 @@ struct WideImageView: View {
                            .resizable()
                            .aspectRatio(contentMode: .fit)
                            .frame(width: 200, height: 300)
+                           .shadow(color: .white, radius: 12)
                            .position(
                                x: frameGeometry.size.width * 0.3,  //
                                y: frameGeometry.size.height * 0.75 //
                            )
-                           .debugStroke(.green)
                            .allowsHitTesting(false)
                         
                                             
                         // Tap overlay for background taps
-                        Group { // Group to apply modifiers consistently
-                                    if stateManager.isDisplayingDialogue, let info = stateManager.currentDialogueInfo {
+                        Group {
+                            if stateManager.isDisplayingDialogue, let info = stateManager.currentDialogueInfo {
                                         // Show the dialogue image
                                         Image(info.dialogueImageName)
                                             .resizable()
-                                            .scaledToFit() // Fit within the dialogue area frame
+                                            .scaledToFill() // Fit within the dialogue area frame
                                             .frame(width: frameGeometry.size.width, height: 250)
-                                            .background(.ultraThinMaterial) // Optional background for readability
+                                            .clipped()
                                             .transition(.opacity.animation(.easeInOut)) // Fade in/out
                                     } else {
                                         // Optional: Show a placeholder or nothing when no dialogue
@@ -153,17 +153,19 @@ struct WideImageView: View {
                     }
                 }
                 .frame(width: frameWidth, height: frameHeight)
-                .clipped()
-                .debugStroke()
+                .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
+                .onAppear {
+                            stateManager.completionCallback = {
+                                levelManager.completeLevel()
+                            }
+                        }
             
-            sliderControls
         }
     }
     
 }
 
 // MARK: - Button
-import SwiftUI
 
 struct ButtonView: View {
     @Binding var offsetPercentage: Double
@@ -210,7 +212,7 @@ struct ButtonView: View {
 }
 
 
-
-#Preview {
-    WideImageView()
+#Preview{
+    WideImageView(image: Image( "wide"))
+        .environment(LevelManager())
 }
