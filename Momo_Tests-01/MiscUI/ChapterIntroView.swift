@@ -37,11 +37,12 @@ struct ChapterIntroView: View {
                      
                     
                     HStack() {
+                        Spacer()
                         CustomButtonView(title: "siguiente") {
                             levelManager.completeLevel()
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: 56,alignment: .trailing)
+                    .frame( maxHeight: 56)
                     .padding(16)
                 }
             }

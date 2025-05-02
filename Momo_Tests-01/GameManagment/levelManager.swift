@@ -146,7 +146,7 @@ import SwiftUI
                     id: UUID(),
                     name: "Drag Game",
                     content: AnyView(DragProgressView(
-                        swipeSensitivity: 8.0)
+                        swipeSensitivity: 8.0, Ilustration: Image("reason"))
                     ),
                     transition: .cameraPan,
                     isCompleted: false

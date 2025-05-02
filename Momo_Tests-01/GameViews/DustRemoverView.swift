@@ -219,6 +219,7 @@ struct DustRemoverView2: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: -25) {
+                
                 ZStack(alignment: .top) {
                     backgroundImage
                         .resizable()
@@ -235,26 +236,27 @@ struct DustRemoverView2: View {
                         .gesture(dragGesture)
                 }
                 
-                VStack() {
-                    if showButton {
-                        CustomButtonView(title: "siguiente") {
-                            levelManager.completeLevel()
-                        }
-                        .transition(.opacity)
+                HStack() {
+                    Spacer()
+                    CustomButtonView(title: "siguiente") {
+                        levelManager.completeLevel()
                     }
+                    .opacity(showButton ? 1 : 0)
+                    .allowsHitTesting(showButton)
                 }
-                .padding(.horizontal, 15)
-                .frame(width: backgroundWidth, alignment: .trailing)
+                    .padding(.horizontal, 15)
+                    .frame(width: backgroundWidth, height: 70)
+                
             }
             .onAppear {
                 initializeGrid()
             }
         }
         .onDisappear {
-            // Clean up timer when view disappears
             buttonTimer?.invalidate()
             buttonTimer = nil
         }
+        
     }
 }
 

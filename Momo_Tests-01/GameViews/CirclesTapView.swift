@@ -79,8 +79,8 @@ struct CirclesView: View {
                     .cornerRadius(20)
                     .overlay{
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(style: StrokeStyle(lineWidth: 2))
-                            .foregroundColor(.gray)
+                            .stroke(style: StrokeStyle(lineWidth: 4))
+                            .foregroundColor(.black)
                     }
             }
         }

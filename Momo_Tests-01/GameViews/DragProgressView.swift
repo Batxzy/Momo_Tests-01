@@ -17,7 +17,9 @@ struct DragProgressView: View {
     let greenRectangleSize = CGSize(width: 282, height: 200)
     let progressBarWidth: CGFloat = 300
     let progressBarHeight: CGFloat = 20
-
+    
+    let Ilustration : Image
+    
     @State private var lastDragPosition: CGPoint = .zero
     
     // posicion del rectanglo verde
@@ -113,14 +115,17 @@ struct DragProgressView: View {
             
             //--- Drag Area ----
             ZStack {
-                Rectangle()
-                    .fill(Color.blue)
+                Ilustration
+                    .resizable()
+                    .scaledToFill()
                     .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
+                    .clipped()
                     .overlay(
                         GeometryReader { blueGeometry in
                             Rectangle()
-                                .fill(Color.green)
+                                .fill(Color.clear)
                                 .frame(width: greenRectangleSize.width, height: greenRectangleSize.height)
+                                .contentShape(Rectangle()) // This preserves hit testing area
                                 .position(
                                     x: blueGeometry.size.width * greenRectRelativePosition.x,
                                     y: blueGeometry.size.height * greenRectRelativePosition.y
@@ -129,26 +134,28 @@ struct DragProgressView: View {
                         }
                     )
             }
-            .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
-
+            
             // --- Progress Bar Area ---
-            VStack(spacing: 10) {
-
+            GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background track
-                    RoundedRectangle(cornerRadius: progressBarHeight / 2)
-                        .fill(.gray.opacity(0.3))
-
-                    // Filled progress indicator
-                    RoundedRectangle(cornerRadius: progressBarHeight / 2)
+                    RoundedRectangle(cornerRadius: 10)
                         .fill(isComplete ? Color.green : Color.red)
-                        .frame(width: progressBarWidth * CGFloat(progress))
-                        // Use a smooth animation for progress changes
+                        .frame(width: geometry.size.width * CGFloat(progress), height: 47)
                         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: progress)
+                    
+                    Rectangle()
+                        .foregroundColor(.clear)
+                        .frame(width: 300, height: 47)
+                        .background(
+                            Image("Bar")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 300, height: 47)
+                                .clipped()
+                        )
                 }
-                .frame(width: progressBarWidth, height: progressBarHeight)
             }
-            .padding(20)
+            .frame(width: 300,height: 47)
         }
         .padding()
         .onAppear(perform: startTimer)
@@ -162,7 +169,7 @@ struct DragProgressView: View {
 struct DragProgressView_Previews: PreviewProvider {
     static var previews: some View {
         // Example with higher sensitivity (harder to fill)
-        DragProgressView(swipeSensitivity: 9)
+        DragProgressView(swipeSensitivity: 9, Ilustration: Image ("Reason") )
             .environment(LevelManager())
     }
 }
