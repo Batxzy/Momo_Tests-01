@@ -96,6 +96,13 @@ import SwiftUI
             // --- Datos ---
             let chapter1Levels = [
                 
+            Level(id: UUID(),
+                  name: "1",
+                  content: AnyView(WideImageView(image: Image("wide"))),
+                  transition: .cameraPan,
+                  isCompleted: false,
+                 ),
+                
                 Level(id: UUID(),
                       name: "1",
                       content: AnyView(ChapterIntroView()),

@@ -40,11 +40,11 @@ struct WideImageView: View {
     private let frameHeight: CGFloat = 733
     
     // posiciones de los personajes
-    private let rect1ImagePosition = CGPoint(x: 0.25, y: 0.3)
+    private let rect1ImagePosition = CGPoint(x: 0.31, y: 0.3)
     
     private let rect2ImagePosition = CGPoint(x: 0.60, y: 0.6)
     
-    private let rect3ImagePosition = CGPoint(x: 0.90, y: 0.7)
+    private let rect3ImagePosition = CGPoint(x: 0.96, y: 0.7)
     
     // MARK: - setup
     
@@ -55,7 +55,7 @@ struct WideImageView: View {
     
     private var sliderControls: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("posicion")
+            Text("position")
                 .font(.callout)
                 .foregroundColor(.secondary)
             
@@ -69,10 +69,6 @@ struct WideImageView: View {
             .onChange(of: offsetPercentage) { newValue in
                 print("🎚️ Slider: \(String(format: "%.2f", newValue))")
                 print("➡️ Offset: \(String(format: "%.1f", calculateOffset()))")
-                
-                // Print current rectangle positions for debugging
-                let rect1X = imageSize.width * rect1ImagePosition.x + calculateOffset()
-                print("📍 Rect1 current position: \(String(format: "%.1f", rect1X))")
             }
             
             HStack {
@@ -89,88 +85,52 @@ struct WideImageView: View {
     // MARK: - Body
     var body: some View {
         VStack(spacing: 2) {
+            
+            
                 GeometryReader { frameGeometry in
                     ZStack() {
-                            image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            
-                            //aqui leo las dimensiones del view y se las paso al geometry size
-                            .readSize { size in
-                                if imageSize != size {
-                                    imageSize = size
-                                    print("📏 Image size: \(size.width) × \(size.height)")
-                                    print("📐 Excess width: \(size.width - frameWidth)")
-                                }
+                        image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                    
+                        //aqui leo las dimensiones del view y se las paso al geometry size
+                        .readSize { size in
+                            if imageSize != size {
+                                imageSize = size
+                                print("📏 Image size: \(size.width) × \(size.height)")
+                                print("📐 Excess width: \(size.width - frameWidth)")
                             }
-                        
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                ZStack {
-                                    Image("Reason")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .padding(16)
-                                }
-                            )
-                            .frame(width: 180, height: 180)
-                            .position(
-                                x: imageSize.width * rect1ImagePosition.x,
-                                y: frameHeight * rect1ImagePosition.y
-                            )
-                        
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.ultraThinMaterial)
-                            .overlay(content: {
-                                ZStack {
-                                    Image("Shinji")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .background(.white)
-                                        .padding(16)
-                                        .clipped()
-                                }
-                            })
-                            .frame(width: 180, height: 180)
+                        }
+                        .offset(x: calculateOffset())
+                    
+                        Group{
+                            InteractiveElementView(imageName: "Reason", position: rect1ImagePosition, imageWidth: imageSize.width, frameHeight: frameHeight)
                             
-                            .position(
-                                x: imageSize.width * rect2ImagePosition.x,
-                                y: frameHeight * rect2ImagePosition.y
-                            )
+                            InteractiveElementView(imageName: "Shinji", backgroundColor: .white, position: rect2ImagePosition, imageWidth: imageSize.width, frameHeight: frameHeight)
+                            
+                            InteractiveElementView(imageName: "rectangle33", position: rect3ImagePosition, imageWidth: imageSize.width, frameHeight: frameHeight)
+                        }
+                        .offset(x: calculateOffset())
+                       
+                        Image("Momo")
+                           .resizable()
+                           .aspectRatio(contentMode: .fit)
+                           .frame(width: 200, height: 300)
+                           .position(
+                               x: frameGeometry.size.width * 0.3,  //
+                               y: frameGeometry.size.height * 0.75 //
+                           )
+                           .debugStroke(.green)
                         
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(.ultraThinMaterial)
-                            .overlay(content: {
-                                ZStack {
-                                    Image("rectangle33")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .padding(16)
-                                        
-                                }
-                            })
-                            .frame(width: 180, height: 180)
-                            .position(
-                                x: imageSize.width * rect3ImagePosition.x,
-                                y: frameHeight * rect3ImagePosition.y
-                            )
+                        
+                        TapOverlayView(offsetPercentage: $offsetPercentage)
+                        
                     }
-                    .offset(x: calculateOffset())
                 }
                 .frame(width: frameWidth, height: frameHeight)
                 .clipped()
                 .debugStroke()
             
-            
-            // Long press animation control
-           LongPressAnimationControl(
-               offsetPercentage: $offsetPercentage,
-               imageSize: imageSize,
-               frameWidth: frameWidth
-           )
-           .padding(.horizontal, 20)
-            // Slider controls
             sliderControls
         }
     }
@@ -178,79 +138,125 @@ struct WideImageView: View {
 }
 
 // MARK: - Button
-struct LongPressAnimationControl: View {
-    
+import SwiftUI
+
+struct ButtonView: View {
     @Binding var offsetPercentage: Double
-    @State private var isPressed = false
-    @State private var animationPhase = 0
+    @State private var isAnimating = false
     
-    let imageSize: CGSize
-    let frameWidth: CGFloat
-    
-    // Slower animation configuration
-    private let animationDuration = 4.0  // Much slower animation
-    private let movementIncrement = 0.20 // Move 25% at a time (smaller steps)
+    // Animation configuration
+    private let movementIncrement = 0.20 // Increase offset by 20%
+    private let animationDuration = 1.0    // Animation lasts 4 seconds
     
     var body: some View {
-        Text("boton")
-            .font(.headline)
-            .padding()
-            .background {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isPressed ? Color.blue.opacity(0.7) : Color.blue)
+        Button(action: {
+            if !isAnimating {
+                startAnimation()
             }
-            .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            // Subtle pulse effect while pressing
-            .opacity(isPressed ? 0.9 + (0.1 * sin(Date.timeIntervalSinceReferenceDate * 3)) : 1.0)
-            .scaleEffect(isPressed ? 0.98 : 1.0)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isPressed {
-                            startAnimation()
-                        }
-                    }
-                    .onEnded { _ in
-                        stopAnimation()
-                    }
-            )
-    
-            // Modern transition
-            .animation(.smooth(duration: 0.2), value: isPressed)
-    }
-    
-    private func startAnimation() {
-        guard !isPressed else { return }
-        
-        print("👆 Animation started - moving forward slowly and smoothly")
-        isPressed = true
-        
-        // Calculate target based on current position (smaller increment)
-        let targetOffset = min(1.0, offsetPercentage + movementIncrement)
-        
-        // Use smooth animation with slower timing
-        withAnimation(.smooth(duration: animationDuration)) {
-            // Animate to target position
-            offsetPercentage = targetOffset
+        }) {
+            Text("boton")
+                .font(.headline)
+                .padding()
+                .background {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isAnimating ? Color.blue.opacity(0.7) : Color.blue)
+                }
+                .foregroundColor(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .scaleEffect(isAnimating ? 0.98 : 1.0)
         }
     }
     
-    private func stopAnimation() {
-        guard isPressed else { return }
+    private func startAnimation() {
+        isAnimating = true
         
-        print("👆 Animation stopped at \(String(format: "%.2f", offsetPercentage))")
-        isPressed = false
+        // Calculate target offset ensuring it doesn't exceed 1.0
+        let targetOffset = min(1.0, offsetPercentage + movementIncrement)
         
-        // Stop animation immediately without additional movement
-        withAnimation(.smooth(duration: 0.3)) {
-            // No additional movement, just stabilize
-            offsetPercentage = offsetPercentage
+        withAnimation(.easeInOut(duration: animationDuration)) {
+            offsetPercentage = targetOffset
+        }
+        
+        // Reset the animation state after the duration so the button can be pressed again.
+        DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
+            isAnimating = false
         }
     }
 }
 
+// MARK: - Tap overlay
+struct TapOverlayView: View {
+    
+    @Binding var offsetPercentage: Double
+    
+    @State private var isAnimating = false
+    @State private var currentTargetStateIndex = 0
 
+    private let targetOffsetStates: [Double] = [0.0, 0.25, 0.60, 1.0]
+
+    private let animationDuration = 4.0    // Animation duration
+
+    var body: some View {
+        Color.clear // Transparent tappable area
+            .contentShape(Rectangle()) // Define the tappable shape
+            .onTapGesture {
+                // Only trigger if not already animating
+                if !isAnimating {
+                    advanceToNextStateAndAnimate()
+                } else {
+                    print("🚫 Animation already in progress. Tap ignored.")
+                }
+            }
+    }
+         func advanceToNextStateAndAnimate() {
+
+                isAnimating = true
+
+                let nextStateIndex = (currentTargetStateIndex + 1) % targetOffsetStates.count
+
+                let targetOffset = targetOffsetStates[nextStateIndex]
+
+                print("👆 Tap: Animating from state \(currentTargetStateIndex) (offset \(String(format: "%.2f", offsetPercentage))) to state \(nextStateIndex) (target offset \(String(format: "%.2f", targetOffset)))")
+
+                withAnimation(.easeInOut(duration: animationDuration)) {
+                    offsetPercentage = targetOffset
+                }
+
+                currentTargetStateIndex = nextStateIndex
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
+                    isAnimating = false
+                    print("✅ Animation complete. Ready for next tap.")
+                }
+            }
+}
+
+// MARK: - Interactive element
+struct InteractiveElementView: View {
+    let imageName: String
+    var backgroundColor: Color? = nil
+    let position: CGPoint
+    let imageWidth: CGFloat
+    let frameHeight: CGFloat
+    private let elementWidth: CGFloat = 180, elementHeight: CGFloat = 180, cornerRadius: CGFloat = 12, padding: CGFloat = 16
+    var body: some View {
+               RoundedRectangle(cornerRadius: cornerRadius)
+                   .fill(.ultraThinMaterial)
+                   .frame(width: elementWidth, height: elementHeight)
+                   .overlay(
+                       Image(imageName)
+                           .resizable()
+                           .scaledToFit()
+                           .background(backgroundColor ?? .clear)
+                           .padding(padding)
+                           .clipped()
+                   )
+                   .position(
+                       x: imageWidth * position.x,
+                       y: frameHeight * position.y
+                   )
+    }
+}
 
 #Preview {
     WideImageView()
