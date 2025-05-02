@@ -16,6 +16,5 @@ struct TapOverlayView: View {
             .onTapGesture {
                 stateManager.handleBackgroundTap()
             }
-            .allowsHitTesting(true) // Explicitly enable hit testing
     }
 }

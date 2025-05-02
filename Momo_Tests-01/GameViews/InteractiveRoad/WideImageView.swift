@@ -80,7 +80,7 @@ struct WideImageView: View {
                 .foregroundColor(.secondary)
             }
             .frame(width: frameWidth)
-            .disabled(stateManager.isAnimating || stateManager.showingDialogue)
+            .disabled(stateManager.isAnimating || stateManager.isDisplayingDialogue)
         }
     
     // MARK: - Body
@@ -89,7 +89,7 @@ struct WideImageView: View {
             
             
                 GeometryReader { frameGeometry in
-                    ZStack() {
+                    ZStack(){
                         image
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -103,7 +103,9 @@ struct WideImageView: View {
                             }
                         }
                         .offset(x: calculateOffset())
-                    
+                        
+                        TapOverlayView(stateManager: stateManager)
+
                         ForEach(0..<elementPositions.count, id: \.self) { index in
                                     InteractiveElementView(
                                         imageName: elementImages[index],
@@ -127,11 +129,27 @@ struct WideImageView: View {
                                y: frameGeometry.size.height * 0.75 //
                            )
                            .debugStroke(.green)
+                           .allowsHitTesting(false)
                         
                                             
                         // Tap overlay for background taps
-                        TapOverlayView(stateManager: stateManager)
-                        
+                        Group { // Group to apply modifiers consistently
+                                    if stateManager.isDisplayingDialogue, let info = stateManager.currentDialogueInfo {
+                                        // Show the dialogue image
+                                        Image(info.dialogueImageName)
+                                            .resizable()
+                                            .scaledToFit() // Fit within the dialogue area frame
+                                            .frame(width: frameGeometry.size.width, height: 250)
+                                            .background(.ultraThinMaterial) // Optional background for readability
+                                            .transition(.opacity.animation(.easeInOut)) // Fade in/out
+                                    } else {
+                                        // Optional: Show a placeholder or nothing when no dialogue
+                                         Color.clear // Or your placeholder view
+                                             .frame(width: frameGeometry.size.width, height: 250)
+                                    }
+                                }
+                            .position(x: frameGeometry.size.width / 2, y: 17)
+
                     }
                 }
                 .frame(width: frameWidth, height: frameHeight)
