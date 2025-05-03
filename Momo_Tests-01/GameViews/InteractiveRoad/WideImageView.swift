@@ -86,132 +86,70 @@ struct WideImageView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack() {
-
+            VStack() {
                 GeometryReader { frameGeometry in
-                    ZStack(){
+                    ZStack() {
+                        // Background image
                         image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                    
-                        //aqui leo las dimensiones del view y se las paso al geometry size
-                        .readSize { size in
-                            if imageSize != size {
-                                imageSize = size
-                                print("📏 Image size: \(size.width) × \(size.height)")
-                                print("📐 Excess width: \(size.width - frameWidth)")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .readSize { size in
+                                if imageSize != size {
+                                    imageSize = size
+                                    print("📏 Image size: \(size.width) × \(size.height)")
+                                    print("📐 Excess width: \(size.width - frameWidth)")
+                                }
                             }
+                            .offset(x: calculateOffset())
+                        
+                        TapOverlayView(stateManager: stateManager)
+                        
+                        // Interactive elements
+                        ForEach(0..<elementPositions.count, id: \.self) { index in
+                            InteractiveElementView(
+                                imageName: elementImages[index],
+                                position: elementPositions[index],
+                                imageWidth: imageSize.width,
+                                frameHeight: frameHeight,
+                                elementIndex: index,
+                                isInteractive: stateManager.isElementInteractive(index),
+                                onTap: stateManager.handleElementTap
+                            )
                         }
                         .offset(x: calculateOffset())
                         
-                        TapOverlayView(stateManager: stateManager)
-
-                        ForEach(0..<elementPositions.count, id: \.self) { index in
-                                    InteractiveElementView(
-                                        imageName: elementImages[index],
-                                        position: elementPositions[index],
-                                        imageWidth: imageSize.width,
-                                        frameHeight: frameHeight,
-
-                                        elementIndex: index,
-                                        isInteractive: stateManager.isElementInteractive(index),
-                                        onTap: stateManager.handleElementTap
-                                    )
-                                }
-                            .offset(x: calculateOffset())
-                       
+                        // Character
                         Image("Momo")
-                           .resizable()
-                           .aspectRatio(contentMode: .fit)
-                           .frame(width: 200, height: 300)
-                           .shadow(color: .white, radius: 12)
-                           .position(
-                               x: frameGeometry.size.width * 0.3,  //
-                               y: frameGeometry.size.height * 0.75 //
-                           )
-                           .allowsHitTesting(false)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 200, height: 300)
+                            .shadow(color: .white, radius: 12)
+                            .position(
+                                x: frameGeometry.size.width * 0.3,
+                                y: frameGeometry.size.height * 0.75
+                            )
+                            .allowsHitTesting(false)
                         
-                                            
-                        // Tap overlay for background taps
-                        Group {
+                        
+                        ZStack {
                             if stateManager.isDisplayingDialogue, let info = stateManager.currentDialogueInfo {
-                                        // Show the dialogue image
-                                        Image(info.dialogueImageName)
-                                            .resizable()
-                                            .scaledToFill() // Fit within the dialogue area frame
-                                            .frame(width: frameGeometry.size.width, height: 250)
-                                            .clipped()
-                                            .transition(.opacity.animation(.easeInOut)) // Fade in/out
-                                    } else {
-                                        // Optional: Show a placeholder or nothing when no dialogue
-                                         Color.clear // Or your placeholder view
-                                             .frame(width: frameGeometry.size.width, height: 250)
-                                    }
-                                }
-                            .position(x: frameGeometry.size.width / 2, y: 17)
-
+                                DialogueViewWide(imageName: info.dialogueImageName, frameGeometry: frameGeometry)
+                                    .transition(.opacity)
+                            }
+                        }
+                        .animation(.easeInOut, value: stateManager.isDisplayingDialogue)
                     }
                 }
                 .frame(width: frameWidth, height: frameHeight)
                 .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 .onAppear {
-                            stateManager.completionCallback = {
-                                levelManager.completeLevel()
-                            }
-                        }
-            
-        }
-    }
-    
-}
-
-// MARK: - Button
-
-struct ButtonView: View {
-    @Binding var offsetPercentage: Double
-    @State private var isAnimating = false
-    
-    // Animation configuration
-    private let movementIncrement = 0.20 // Increase offset by 20%
-    private let animationDuration = 1.0    // Animation lasts 4 seconds
-    
-    var body: some View {
-        Button(action: {
-            if !isAnimating {
-                startAnimation()
-            }
-        }) {
-            Text("boton")
-                .font(.headline)
-                .padding()
-                .background {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(isAnimating ? Color.blue.opacity(0.7) : Color.blue)
+                    stateManager.completionCallback = {
+                        levelManager.completeLevel()
+                    }
                 }
-                .foregroundColor(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .scaleEffect(isAnimating ? 0.98 : 1.0)
+            }
         }
     }
-    
-    private func startAnimation() {
-        isAnimating = true
-        
-        // Calculate target offset ensuring it doesn't exceed 1.0
-        let targetOffset = min(1.0, offsetPercentage + movementIncrement)
-        
-        withAnimation(.easeInOut(duration: animationDuration)) {
-            offsetPercentage = targetOffset
-        }
-        
-        // Reset the animation state after the duration so the button can be pressed again.
-        DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
-            isAnimating = false
-        }
-    }
-}
-
-
 #Preview{
     WideImageView(image: Image( "wide"))
         .environment(LevelManager())

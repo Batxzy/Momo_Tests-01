@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import Combine // Timer still needs Combine or Foundation
-
 
 // State model to represent each state in our story
 struct StoryState: Identifiable {
@@ -30,12 +28,8 @@ class StoryStateManager {
     // MARK: - State Properties
     var offsetPercentage: Double = 0.0
     var currentStateIndex: Int = 0 {
-        didSet {
-            if currentStateIndex != oldValue {
-                printStateTransition(from: oldValue, to: currentStateIndex)
-            }
+            didSet { if currentStateIndex != oldValue { logStateTransition(from: oldValue) } }
         }
-    }
     var isAnimating: Bool = false
     var isWaitingForElementTap: Bool = false
     var isDisplayingDialogue: Bool = false
@@ -109,24 +103,56 @@ class StoryStateManager {
     
     // MARK: - Dialogue Handling
     private func showDialogue(info: DialogueInfo) {
-        isDisplayingDialogue = true
-        currentDialogueInfo = info
-        print("🗨️ Showing dialogue for element \(info.elementIndex)")
-        
-        dialogueTimer?.invalidate()
-        dialogueTimer = Timer.scheduledTimer(withTimeInterval: dialogueAdvanceDelay, repeats: false) { [weak self] _ in
-            self?.hideDialogue()
+
+        self.currentDialogueInfo = info
+            print("🗨️ Preparing to show dialogue for element \(info.elementIndex)")
+
+            withAnimation(.easeInOut) {
+                self.isDisplayingDialogue = true
+            }
+            print("🗨️ Dialogue show animation triggered (isDisplayingDialogue = true).")
+
+            dialogueTimer?.invalidate()
+            dialogueTimer = Timer.scheduledTimer(withTimeInterval: dialogueAdvanceDelay, repeats: false) { [weak self] _ in
+                 print("⏱️ Dialogue timer finished.")
+                self?.hideDialogue()
+            }
+             print("⏱️ Dialogue auto-hide timer started (\(dialogueAdvanceDelay)s).")
         }
-    }
     
     private func hideDialogue() {
-        dialogueTimer?.invalidate(); dialogueTimer = nil
-        isDisplayingDialogue = false
-        currentDialogueInfo = nil
-        print("🗨️ Dialogue finished.")
-        
-        checkAndTriggerCompletion()
-    }
+            // 1. Invalidate timer if it's still running (e.g., manual dismissal if implemented)
+            dialogueTimer?.invalidate()
+            dialogueTimer = nil
+
+            // 2. Check if already hidden or hiding to prevent redundant animations/logic
+            guard isDisplayingDialogue else {
+                print("🚫 Dialogue already hidden or hiding. Ignoring hideDialogue call.")
+                return
+            }
+             print("🗨️ Starting hide dialogue process...")
+
+            // 3. Trigger the hide animation by changing the flag
+            //    The view associated with `isDisplayingDialogue` will use its transition.
+            withAnimation(.easeInOut) { // Consistent animation
+                self.isDisplayingDialogue = false
+            }
+            print("🗨️ Dialogue hide animation triggered (isDisplayingDialogue = false).")
+
+            // 4. Clean up the data state *after* initiating the animation.
+            //    This ensures the DialogueViewWide still has access to `currentDialogueInfo`
+            //    during its fade-out transition if the transition needs it.
+            //    A slight delay might sometimes be needed if the transition relies heavily
+            //    on the data *during* the animation, but often just setting it after `withAnimation` works.
+            //    Let's try without delay first.
+            // DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in // Optional small delay
+                 self.currentDialogueInfo = nil
+                 print("🧹 Dialogue data cleaned up (currentDialogueInfo = nil).")
+            // }
+
+            // 5. Check for completion now that the dialogue interaction is finished.
+            checkAndTriggerCompletion()
+        }
     
     // MARK: - State Advancement
     private func advanceToNextState() {
