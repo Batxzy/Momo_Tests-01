@@ -14,7 +14,6 @@ struct GridItemView: View {
     var body: some View {
         ZStack {
             Color.white
-
             if isUnlocked {
                 Image(imageName)
                     .resizable()
@@ -22,28 +21,29 @@ struct GridItemView: View {
                     .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .clipped()
             } else {
-                // Locked state with blur, grayscale and lock icon
                 Image(imageName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                     .clipped()
-                    .blur(radius: 4)
-                    .grayscale(0.9)
+                    .blur(radius: 3)
+                    .grayscale(1)
+                    .opacity(isUnlocked ? 1.0 : 0.2)
                     .overlay(
                         Image(systemName: "lock.fill")
-                            .font(.system(size: 30))
-                            .foregroundColor(.white)
-                            .shadow(radius: 2)
+                            .font(.system(size: 60))
+                            .foregroundColor(.black)
                     )
             }
         }
         .aspectRatio(1, contentMode: .fit)
+        
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .circular)
-                .stroke(isUnlocked ? Color.primary : Color.gray.opacity(0.5), lineWidth: 5)
+                .stroke(isUnlocked ? Color.black : Color.gray.opacity(0.2), lineWidth: 5)
         }
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .circular))
+        
     }
 }
 
@@ -52,9 +52,6 @@ struct GalleryviewGrid: View {
     @Namespace private var gridItemTransition
     @Binding var path: NavigationPath
     @Environment(LevelManager.self) private var levelManager
-
-    // List of image names to display
-    let imageNames = ["rectangle33", "rectangle35", "Shinji", "rectangle1", "rectangle2", "rectangle3", "wide"]
 
     // Configuration columns
     private let columns: [GridItem] = [
@@ -65,97 +62,122 @@ struct GalleryviewGrid: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 17) {
-                ForEach(imageNames, id: \.self) { name in
-                    let isUnlocked = name.isUnlocked(levelManager: levelManager)
-                    
+                ForEach(galleryItems, id: \.id) { item in
+                    let isUnlocked = item.isUnlocked(levelManager: levelManager)
+
                     Button {
-                        // Only navigate if unlocked
                         if isUnlocked {
-                            // Filter the image names to only include unlocked ones
-                            let unlockedImages = imageNames.filter { $0.isUnlocked(levelManager: levelManager) }
+                            let unlockedItems = galleryItems.filter { $0.isUnlocked(levelManager: levelManager) }
+                            let unlockedImageNames = unlockedItems.map { $0.imageName }
                             
                             path.append(NavigationTarget.imageDetail(
-                                allNames: unlockedImages,
-                                selectedName: name,
+                                allNames: unlockedImageNames,
+                                selectedName: item.imageName,
                                 namespace: gridItemTransition
                             ))
-                        } else {
-                            // Haptic feedback for locked items
-                            let generator = UIImpactFeedbackGenerator(style: .medium)
-                            generator.impactOccurred()
                         }
                     } label: {
-                        GridItemView(imageName: name, isUnlocked: isUnlocked)
-                            .matchedTransitionSource(id: name, in: gridItemTransition)
+                        GridItemView(imageName: item.imageName, isUnlocked: isUnlocked)
+                            .matchedTransitionSource(id: item.imageName, in: gridItemTransition)
                     }
                     .buttonStyle(.plain)
-                    .disabled(!isUnlocked)
+                    
+                    
                 }
             }
+            
             .padding()
         }
+        .scrollIndicators(.hidden)
     }
 }
 
 // MARK: - Main Gallery View
+
 struct Galleryview: View {
-    @Environment(LevelManager.self) private var levelManager
     @Binding var path: NavigationPath
-    
+
     var body: some View {
-        VStack {
-            VStack(spacing: 20) {
+        VStack(spacing:0) { // Keep spacing 0 if desired
+            // Container for title and grid
+            VStack(spacing: 10) { // Use original spacing if preferred
                 Text("Galeria")
                     .font(.Patrick60)
-                    .frame(maxHeight: 50)
-                
-                // Grid view of images
+                    .frame(maxHeight: 60)
+
+                // Grid view of images - Apply modifier HERE
                 GalleryviewGrid(path: $path)
+                .fadingEdgeGradient( // Use the gradient modifier
+                    topHeight: 20,       // Your desired top height
+                    bottomHeight: 40,   // Your desired bottom height (e.g., 4 * 40)
+                    color: .white,       // Match background
+                    solidStop: 0.4      // Control fade point (optional)
+                )
             }
             
-            // Custom button to return
             CustomButtonView(title: "Atrás") {
-                path.removeLast()
+                if !path.isEmpty {
+                   path.removeLast()
+                }
             }
+            .padding(.bottom ,30)
         }
         .padding(20)
+        .background(.white)
+        .navigationBarHidden(true)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
+
 // MARK: - preview
 #Preview {
+    // Preview Container using the new structure
     struct GalleryviewPreviewContainer: View {
         @State private var previewPath = NavigationPath()
+        // Use a State var for the manager in preview
         @State private var previewLevelManager = LevelManager()
 
         var body: some View {
+            // Use NavigationStack for preview consistency
             NavigationStack(path: $previewPath) {
                 Galleryview(path: $previewPath)
+                    // Add navigation destinations needed for the preview flow
                     .navigationDestination(for: NavigationTarget.self) { target in
                         switch target {
                         case .imageDetail(let names, let selected, let ns):
+                            // Ensure ImageGalleryView initializer matches
                             ImageGalleryView(
                                 allImageNames: names,
                                 selectedImageName: selected,
                                 namespace: ns
                             )
-                            .navigationTransition(
-                                .zoom(sourceID: selected, in: ns)
-                            )
+                            // Apply transitions and modifiers as in the main app
+                            .navigationTransition(.zoom(sourceID: selected, in: ns))
                             .navigationBarBackButtonHidden(true)
+                            .toolbar(.hidden, for: .navigationBar) // Hide toolbar for detail view
                         default:
                             Text("Preview: Unexpected Navigation Target")
                         }
                     }
             }
+            // Provide the preview LevelManager to the environment
             .environment(previewLevelManager)
             .onAppear {
-                // For preview, mark first chapter as completed to show some unlocked items
-                if !previewLevelManager.chapters.isEmpty {
-                    for i in 0..<previewLevelManager.chapters[0].levels.count {
-                        previewLevelManager.chapters[0].levels[i].isCompleted = true
-                    }
-                }
+                 // Simulate unlocking based on the galleryItems structure
+                 // Example: Unlock chapter 0 (required for first two items)
+                 let chapterIndexToUnlock = 0
+                 if previewLevelManager.chapters.indices.contains(chapterIndexToUnlock) {
+                     // Mark all levels in that chapter as completed
+                     for i in 0..<previewLevelManager.chapters[chapterIndexToUnlock].levels.count {
+                         previewLevelManager.chapters[chapterIndexToUnlock].levels[i].isCompleted = true
+                     }
+                     // Optionally, explicitly mark the chapter as unlocked if needed by your logic
+                     // previewLevelManager.chapters[chapterIndexToUnlock].isUnlocked = true
+                     print("Preview: Unlocked items for Chapter \(chapterIndexToUnlock + 1)")
+                 } else {
+                     print("Preview: Chapter \(chapterIndexToUnlock + 1) not found in LevelManager.")
+                 }
             }
         }
     }
