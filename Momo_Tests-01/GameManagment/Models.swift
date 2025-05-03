@@ -105,6 +105,9 @@ struct Chapter: Identifiable {
     let title: String
     var levels: [Level]
     var isUnlocked: Bool
+    var isAllLevelsCompleted: Bool {
+        !levels.isEmpty && levels.allSatisfy { $0.isCompleted }
+    }
 }
 
 struct Part : Identifiable {

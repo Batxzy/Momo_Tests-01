@@ -21,7 +21,6 @@ struct Momo_Tests_01App: App {
             NavigationStack(path: $navigationPath) {
                 
                 MainMenu(path: $navigationPath)
-                    
                     .navigationDestination(for: NavigationTarget.self) { target in
                         switch target {
                         case .chapterMenu:
@@ -33,19 +32,19 @@ struct Momo_Tests_01App: App {
                         case .gallery:
                             // Navigate to Galleryview, passing the main path
                             Galleryview(path: $navigationPath)
-                                .navigationBarBackButtonHidden() // You might want this hidden or not
-                        // Add destination for the image detail
-                        case .imageDetail(let allNames, let selectedName, let namespace):
-                            ImageGalleryView(
-                                allImageNames: allNames,
-                                selectedImageName: selectedName,
-                                namespace: namespace
-                            )
-                            .navigationTransition(
-                                .zoom(sourceID: selectedName, in: namespace)
-                            )
-                            .navigationBarBackButtonHidden(true)
-                            .toolbar(.hidden, for: .navigationBar)                       }
+                                .navigationBarBackButtonHidden()
+                        case let .imageDetail(names, selectedName, namespace):
+                                ImageGalleryView(
+                                    allImageNames: names,
+                                    selectedImageName: selectedName,
+                                    namespace: namespace
+                                )
+                                .navigationTransition(
+                                    .zoom(sourceID: selectedName, in: namespace)
+                                )
+                                .navigationBarBackButtonHidden(true)
+                                .toolbar(.hidden, for: .navigationBar)
+                        }
                     }
             }
            

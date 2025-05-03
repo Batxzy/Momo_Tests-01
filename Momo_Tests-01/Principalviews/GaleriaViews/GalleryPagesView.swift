@@ -16,30 +16,102 @@ extension CGSize {
     }
 }
 
+extension String {
+    // Get required chapter index for unlocking this image
+    func requiredChapterIndex() -> Int {
+        switch self {
+        case "rectangle33", "rectangle35", "Reason":
+            return 0 // Chapter 1 images
+        case "Shinji", "rectangle1":
+            return 1 // Chapter 2 images
+        case "rectangle2":
+            return 2 // Chapter 3 images
+        case "rectangle3", "wide":
+            return 3 // Chapter 4 images
+        default:
+            return 0 // Default to Chapter 1 for unknown images
+        }
+    }
+    
+    // Check if image is unlocked based on level manager progress
+    func isUnlocked(levelManager: LevelManager) -> Bool {
+        let requiredChapter = requiredChapterIndex()
+        
+        // Check if the required chapter exists
+        guard levelManager.chapters.indices.contains(requiredChapter) else {
+            return false
+        }
+        
+        // Image is unlocked if required chapter is completed
+        let chapter = levelManager.chapters[requiredChapter]
+        if chapter.levels.allSatisfy({ $0.isCompleted }) {
+            return true
+        }
+        
+        // Also unlock if any later chapter is unlocked
+        return levelManager.chapters.indices.contains(requiredChapter + 1) &&
+               levelManager.chapters[requiredChapter + 1].isUnlocked
+    }
+}
+
+struct ImageGalleryItem: Identifiable, Hashable {
+    let id = UUID()
+    let imageName: String
+    let requiredChapterIndex: Int // The chapter that needs to be completed to unlock this image
+    let title: String
+    
+    func isUnlocked(levelManager: LevelManager) -> Bool {
+        // Check if the required chapter is completed (all levels in the chapter are completed)
+        guard levelManager.chapters.indices.contains(requiredChapterIndex) else {
+            return false
+        }
+        
+        let chapter = levelManager.chapters[requiredChapterIndex]
+        
+        // An item is unlocked if the required chapter is completed or if a later chapter is unlocked
+        if chapter.isAllLevelsCompleted {
+            return true
+        }
+        
+        // Also unlock if any later chapter is unlocked (meaning the player has progressed past this chapter)
+        return levelManager.chapters.indices.contains(requiredChapterIndex + 1) &&
+               levelManager.chapters[requiredChapterIndex + 1].isUnlocked
+    }
+    
+    // For Hashable conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: ImageGalleryItem, rhs: ImageGalleryItem) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
 // MARK: - Single page view
 struct GalleryPageView: View {
     let imageName: String
-
-    // Estados de los gestos gesto de zoom (pinch)
+    
+    // Gesture states for zoom (pinch)
     @GestureState private var gestureScale: CGFloat  = 1.0
     @GestureState private var gestureRotation: Angle = .zero
-
-    // Escala y rotacion animada acumulada
+    
+    // Accumulated animated scale and rotation
     @State private var animScale: CGFloat  = 1.0
     @State private var animRotation: Angle = .zero
-
-    // Escala y tamaño actual
+    
+    // Current scale and size
     private var currentScale: CGFloat {
         gestureScale * animScale
     }
     private var currentRotation: Angle {
         gestureRotation + animRotation
     }
-
-    // ** Animación para regresar **
+    
+    // Animation to return
     private let spring = Animation.spring(.smooth)
-
-    // Gestos
+    
+    // Gestures
     private var pinch: some Gesture {
         MagnificationGesture()
             .updating($gestureScale) { value, state, _ in
@@ -47,7 +119,7 @@ struct GalleryPageView: View {
             }
             .onEnded { final in
                 animScale = final
-                // Retorna suavemente a escala normal
+                // Smoothly return to normal scale
                 withAnimation(spring) { animScale = 1.0 }
             }
     }
@@ -58,11 +130,11 @@ struct GalleryPageView: View {
             }
             .onEnded { final in
                 animRotation = final
-                // Retorna suavemente a rotación normal
+                // Smoothly return to normal rotation
                 withAnimation(spring) { animRotation = .zero }
             }
     }
-
+    
     // MARK: - body
     var body: some View {
         GeometryReader { geo in
@@ -79,7 +151,7 @@ struct GalleryPageView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(26)
                 .padding(.bottom, 24)
-                // gestos
+                // Gestures
                 .highPriorityGesture(
                     pinch.simultaneously(with: rotate),
                     including: .gesture
@@ -91,42 +163,38 @@ struct GalleryPageView: View {
 
 // MARK: - Gallery pages view
 struct ImageGalleryView: View {
-
-    //parametros
+    // Parameters match what's being passed in NavigationTarget
     let allImageNames: [String]
     let selectedImageName: String
     var namespace: Namespace.ID
-
+    
     @State private var selectedIndex: Int
-
     @Environment(\.dismiss) private var dismiss
-
-    // Inicializador personalizado para definir el índice seleccionado desde el inicio
+    
+    // Initialize with the strings directly
     init(allImageNames: [String], selectedImageName: String, namespace: Namespace.ID) {
         self.allImageNames = allImageNames
         self.selectedImageName = selectedImageName
         self.namespace = namespace
         _selectedIndex = State(initialValue: allImageNames.firstIndex(of: selectedImageName) ?? 0)
-        // Personaliza el indicador de la página (UIPageControl)
+        
+        // Customize the page indicator (UIPageControl)
         UIPageControl.appearance().currentPageIndicatorTintColor = .black
         UIPageControl.appearance().pageIndicatorTintColor = UIColor.black.withAlphaComponent(0.1)
     }
-
-    // Nombre de la imagen actualmente seleccionada
+    
+    // Currently selected name
     private var currentImageName: String { allImageNames[selectedIndex] }
-
-// MARK: - body
+    
     var body: some View {
         ZStack {
-            
-            // Fondo blanco para la galería
+            // White background for the gallery
             Color.white
                 .ignoresSafeArea()
             
-            //-- contenedor galeria y la x --//
+            // Container gallery and the X
             VStack(spacing: -12) {
-                
-                //-- la x --//
+                // The X button
                 HStack {
                     Spacer()
                     Button {
@@ -139,8 +207,8 @@ struct ImageGalleryView: View {
                     }
                 }
                 .padding(.horizontal, 26)
-
-                //-- la galeria--//
+                
+                // The gallery
                 TabView(selection: $selectedIndex.animation(.smooth)) {
                     ForEach(allImageNames.indices, id: \.self) { index in
                         GalleryPageView(imageName: allImageNames[index])
@@ -156,18 +224,3 @@ struct ImageGalleryView: View {
 }
 
 // MARK: - preview
-
-#Preview {
-    struct PreviewWrapper: View {
-        @Namespace var galleryNamespace
-
-        var body: some View {
-            ImageGalleryView(
-                allImageNames: ["rectangle33", "Shinji", "wide"],
-                selectedImageName: "sample1",
-                namespace: galleryNamespace
-            )
-        }
-    }
-    return PreviewWrapper()
-}

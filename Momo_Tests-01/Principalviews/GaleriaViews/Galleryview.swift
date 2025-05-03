@@ -7,24 +7,41 @@
 
 import SwiftUI
 
-// MARK: - view 1 item
 struct GridItemView: View {
     let imageName: String
+    let isUnlocked: Bool
 
     var body: some View {
         ZStack {
             Color.white
 
-            Image(imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                .clipped()
+            if isUnlocked {
+                Image(imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                    .clipped()
+            } else {
+                // Locked state with blur, grayscale and lock icon
+                Image(imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                    .clipped()
+                    .blur(radius: 4)
+                    .grayscale(0.9)
+                    .overlay(
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(.white)
+                            .shadow(radius: 2)
+                    )
+            }
         }
         .aspectRatio(1, contentMode: .fit)
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .circular)
-                .stroke(Color.primary, lineWidth: 5)
+                .stroke(isUnlocked ? Color.primary : Color.gray.opacity(0.5), lineWidth: 5)
         }
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .circular))
     }
@@ -32,14 +49,14 @@ struct GridItemView: View {
 
 // MARK: - View grid
 struct GalleryviewGrid: View {
-
     @Namespace private var gridItemTransition
     @Binding var path: NavigationPath
+    @Environment(LevelManager.self) private var levelManager
 
-    // Lista de nombres de imágenes a mostrar
-    let imageNames = ["rectangle33","rectangle35","Shinji","rectangle1","rectangle2","rectangle3"]
+    // List of image names to display
+    let imageNames = ["rectangle33", "rectangle35", "Shinji", "rectangle1", "rectangle2", "rectangle3", "wide"]
 
-    // configuracion columnas
+    // Configuration columns
     private let columns: [GridItem] = [
         GridItem(.flexible(), spacing: 17),
         GridItem(.flexible(), spacing: 17)
@@ -49,18 +66,30 @@ struct GalleryviewGrid: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 17) {
                 ForEach(imageNames, id: \.self) { name in
+                    let isUnlocked = name.isUnlocked(levelManager: levelManager)
+                    
                     Button {
-                        // Navega al detalle de la imagen seleccionada
-                        path.append(NavigationTarget.imageDetail(
-                            allNames: imageNames,
-                            selectedName: name,
-                            namespace: gridItemTransition
-                        ))
+                        // Only navigate if unlocked
+                        if isUnlocked {
+                            // Filter the image names to only include unlocked ones
+                            let unlockedImages = imageNames.filter { $0.isUnlocked(levelManager: levelManager) }
+                            
+                            path.append(NavigationTarget.imageDetail(
+                                allNames: unlockedImages,
+                                selectedName: name,
+                                namespace: gridItemTransition
+                            ))
+                        } else {
+                            // Haptic feedback for locked items
+                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                            generator.impactOccurred()
+                        }
                     } label: {
-                        GridItemView(imageName: name)
+                        GridItemView(imageName: name, isUnlocked: isUnlocked)
                             .matchedTransitionSource(id: name, in: gridItemTransition)
                     }
                     .buttonStyle(.plain)
+                    .disabled(!isUnlocked)
                 }
             }
             .padding()
@@ -72,20 +101,20 @@ struct GalleryviewGrid: View {
 struct Galleryview: View {
     @Environment(LevelManager.self) private var levelManager
     @Binding var path: NavigationPath
-
+    
     var body: some View {
         VStack {
             VStack(spacing: 20) {
                 Text("Galeria")
                     .font(.Patrick60)
                     .frame(maxHeight: 50)
-
-                // Vista de cuadrícula de imágenes
+                
+                // Grid view of images
                 GalleryviewGrid(path: $path)
             }
-
-            // Botón personalizado para regresar
-            CustomButtonView(title: "atras (temp)") {
+            
+            // Custom button to return
+            CustomButtonView(title: "Atrás") {
                 path.removeLast()
             }
         }
@@ -120,6 +149,14 @@ struct Galleryview: View {
                     }
             }
             .environment(previewLevelManager)
+            .onAppear {
+                // For preview, mark first chapter as completed to show some unlocked items
+                if !previewLevelManager.chapters.isEmpty {
+                    for i in 0..<previewLevelManager.chapters[0].levels.count {
+                        previewLevelManager.chapters[0].levels[i].isCompleted = true
+                    }
+                }
+            }
         }
     }
     return GalleryviewPreviewContainer()
