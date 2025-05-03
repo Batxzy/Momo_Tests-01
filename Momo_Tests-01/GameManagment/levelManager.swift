@@ -96,16 +96,16 @@ import SwiftUI
             // --- Datos ---
             let chapter1Levels = [
                 
-            Level(id: UUID(),
-                  name: "1",
-                  content: AnyView(WideImageView()),
-                  transition: .cameraPan,
-                  isCompleted: false,
-                 ),
-                
                 Level(id: UUID(),
                       name: "1",
                       content: AnyView(ChapterIntroView()),
+                      transition: .cameraPan,
+                      isCompleted: false,
+                     ),
+                
+                Level(id: UUID(),
+                      name: "ImagePan",
+                      content: AnyView(WideImageView()),
                       transition: .cameraPan,
                       isCompleted: false,
                      ),
@@ -335,6 +335,12 @@ import SwiftUI
                       content: AnyView(ImageScrollView(images: Scroll_4_2)),
                       transition: .cameraPan,
                       isCompleted: false
+                     ),
+                Level(id: UUID(),
+                      name: "ImagePan",
+                      content: AnyView(WideImageView()),
+                      transition: .cameraPan,
+                      isCompleted: false,
                      ),
                 Level(id: UUID(),
                       name: "4_3",

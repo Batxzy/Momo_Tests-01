@@ -87,7 +87,7 @@ struct WideImageView: View {
     
     // MARK: - Body
     var body: some View {
-            VStack() {
+            
                 GeometryReader { frameGeometry in
                     ZStack() {
                         // Background image
@@ -152,7 +152,7 @@ struct WideImageView: View {
                         levelManager.completeLevel()
                     }
                 }
-            }
+            
         }
     }
 #Preview{
