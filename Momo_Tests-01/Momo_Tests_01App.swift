@@ -53,20 +53,17 @@ struct Momo_Tests_01App: App {
             .navigationTransition(
                 .fade(.out).animation(.easeInOut(duration: 0.8)))
             .onAppear {
-               levelManager.onChapterCompleteNavigation = {
-                   print("Navigation callback triggered.")
-                   var updatedPath = navigationPath
-
-                   if !updatedPath.isEmpty {
-                        updatedPath.removeLast()
-                   }
-
-                   updatedPath.append(NavigationTarget.chapterMenu)
-                   print("Navigating to ChapterMenu.")
-
-                   navigationPath = updatedPath
-               }
-           }
+                           levelManager.onChapterCompleteNavigation = {
+                               print("Navigation callback triggered.")
+                               
+                               // Clear the entire navigation stack and start fresh
+                               navigationPath = NavigationPath()
+                               
+                               // Add only the chapter menu
+                               navigationPath.append(NavigationTarget.chapterMenu)
+                               print("Navigating to ChapterMenu with a fresh stack.")
+                           }
+                       }
         }
     }
 }

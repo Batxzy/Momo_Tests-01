@@ -87,74 +87,77 @@ struct WideImageView: View {
     
     // MARK: - Body
     var body: some View {
+        ZStack{
+            Color.white
+                .edgesIgnoringSafeArea(.all)
             
-                GeometryReader { frameGeometry in
-                    ZStack() {
-                        // Background image
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .readSize { size in
-                                if imageSize != size {
-                                    imageSize = size
-                                    print("📏 Image size: \(size.width) × \(size.height)")
-                                    print("📐 Excess width: \(size.width - frameWidth)")
-                                }
+            GeometryReader { frameGeometry in
+                ZStack() {
+                    // Background image
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .readSize { size in
+                            if imageSize != size {
+                                imageSize = size
+                                print("📏 Image size: \(size.width) × \(size.height)")
+                                print("📐 Excess width: \(size.width - frameWidth)")
                             }
-                            .offset(x: calculateOffset())
-                        
-                        TapOverlayView(stateManager: stateManager)
-                        
-                        // Interactive elements
-                        ForEach(0..<elementPositions.count, id: \.self) { index in
-                            InteractiveElementView(
-                                imageName: elementImages[index],
-                                position: elementPositions[index],
-                                imageWidth: imageSize.width,
-                                frameHeight: frameHeight,
-                                elementIndex: index,
-                                isInteractive: stateManager.isElementInteractive(index),
-                                onTap: stateManager.handleElementTap
-                            )
                         }
                         .offset(x: calculateOffset())
-                        
-                        // Character
-                       SpriteAnimationView(
-                            frameImages: ["cat3", "cat1", "cat2", "cat1"],
-                            frameDuration: 0.2,
-                            isTransitioning: Binding(
-                                get: { stateManager.isAnimating },
-                                set: { _ in } // We don't need to set this from the animation view
-                            )
+                    
+                    TapOverlayView(stateManager: stateManager)
+                    
+                    // Interactive elements
+                    ForEach(0..<elementPositions.count, id: \.self) { index in
+                        InteractiveElementView(
+                            imageName: elementImages[index],
+                            position: elementPositions[index],
+                            imageWidth: imageSize.width,
+                            frameHeight: frameHeight,
+                            elementIndex: index,
+                            isInteractive: stateManager.isElementInteractive(index),
+                            onTap: stateManager.handleElementTap
                         )
-                        .frame(width: 200, height: 300)
-                        .position(
-                            x: frameGeometry.size.width * 0.3,
-                            y: frameGeometry.size.height * 0.75
+                    }
+                    .offset(x: calculateOffset())
+                    
+                    // Character
+                    SpriteAnimationView(
+                        frameImages: ["cat3", "cat1", "cat2", "cat1"],
+                        frameDuration: 0.2,
+                        isTransitioning: Binding(
+                            get: { stateManager.isAnimating },
+                            set: { _ in } // We don't need to set this from the animation view
                         )
-                        .allowsHitTesting(false)
-                        
-                        
-                        ZStack {
-                            if stateManager.isDisplayingDialogue, let info = stateManager.currentDialogueInfo {
-                                DialogueViewWide(imageName: info.dialogueImageName, frameGeometry: frameGeometry)
-                                    .transition(.opacity)
-                            }
+                    )
+                    .frame(width: 200, height: 300)
+                    .position(
+                        x: frameGeometry.size.width * 0.3,
+                        y: frameGeometry.size.height * 0.75
+                    )
+                    .allowsHitTesting(false)
+                    
+                    
+                    ZStack {
+                        if stateManager.isDisplayingDialogue, let info = stateManager.currentDialogueInfo {
+                            DialogueViewWide(imageName: info.dialogueImageName, frameGeometry: frameGeometry)
+                                .transition(.opacity)
                         }
-                        .animation(.easeInOut, value: stateManager.isDisplayingDialogue)
+                    }
+                    .animation(.easeInOut, value: stateManager.isDisplayingDialogue)
+                }
+            }
+            .frame(width: frameWidth, height: frameHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
+            .onAppear {
+                stateManager.completionCallback = {
+                    levelManager.completeLevel()
                     }
                 }
-                .frame(width: frameWidth, height: frameHeight)
-                .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
-                .onAppear {
-                    stateManager.completionCallback = {
-                        levelManager.completeLevel()
-                    }
-                }
-            
+            }
         }
-    }
+}
 #Preview{
     WideImageView()
         .environment(LevelManager())

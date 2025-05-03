@@ -103,12 +103,6 @@ import SwiftUI
                       isCompleted: false,
                      ),
                 
-                Level(id: UUID(),
-                      name: "ImagePan",
-                      content: AnyView(WideImageView()),
-                      transition: .cameraPan,
-                      isCompleted: false,
-                     ),
                 
                 Level(id: UUID(),
                       name: "1_1",
