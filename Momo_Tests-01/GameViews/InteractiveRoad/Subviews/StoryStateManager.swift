@@ -23,218 +23,216 @@ struct DialogueInfo {
 
 
 
+// MARK: - State Manager
+
 @Observable
 class StoryStateManager {
     // MARK: - State Properties
     var offsetPercentage: Double = 0.0
     var currentStateIndex: Int = 0 {
-            didSet { if currentStateIndex != oldValue { logStateTransition(from: oldValue) } }
-        }
-    var isAnimating: Bool = false
-    var isWaitingForElementTap: Bool = false
-    var isDisplayingDialogue: Bool = false
-    var currentDialogueInfo: DialogueInfo? = nil
-
-    // MARK: - Configuration
-    let animationDuration: Double = 4.0
-    let dialogueAdvanceDelay: Double = 3.0
-    let completionDelay: Double = 3.0 // Delay before calling levelManager.complete()
-
+        didSet { if currentStateIndex != oldValue { logStateTransition(from: oldValue) } }
+    }
+    
+    // Interactive states with clear access levels
+    private(set) var isAnimating = false
+    private(set) var isWaitingForElementTap = false
+    private(set) var isDisplayingDialogue = false
+    private(set) var currentDialogueInfo: DialogueInfo? = nil
+    
+    // MARK: - Timing Configuration
+    private let animationDuration: Double = 4.0
+    private let dialogueDelay: Double = 3.0
+    private let completionDelay: Double = 3.0
+    
+    // Completion callback
+    var completionCallback: (() -> Void)?
+    
     // MARK: - Timers
     private var dialogueTimer: Timer?
-    private var completionTimer: Timer? // Timer for final completion delay
-
-    // MARK: - Story States (Example - use your actual states)
+    private var completionTimer: Timer?
+    
+    // MARK: - Story Configuration
+    
+    /// Defines the progression of story states and their associated interactions
     let states: [StoryState] = [
         StoryState(offsetPercentage: 0.0, dialogueInfo: nil),
         StoryState(offsetPercentage: 0.25, dialogueInfo: DialogueInfo(elementIndex: 0, dialogueImageName: "Reason")),
         StoryState(offsetPercentage: 0.60, dialogueInfo: nil),
-        StoryState(offsetPercentage: 1.0, dialogueInfo: DialogueInfo(elementIndex: 2, dialogueImageName: "Reason")) // Last state has dialogue
-        // Example: If last state had no dialogue:
-        // StoryState(offsetPercentage: 1.0, dialogueInfo: nil)
+        StoryState(offsetPercentage: 1.0, dialogueInfo: DialogueInfo(elementIndex: 2, dialogueImageName: "Reason"))
     ]
-
-    // MARK: - Initialization
-    init() {
-            print("🔄 StoryStateManager initialized at state \(currentStateIndex)")
-            setupInteractionForCurrentState()
-        }
     
-    var completionCallback: (() -> Void)?
-
-
     // MARK: - Computed Properties
+    
+    /// The current state in the story progression
     var currentState: StoryState {
         guard states.indices.contains(currentStateIndex) else { return states[0] }
         return states[currentStateIndex]
     }
-
+    
+    /// Whether we're at the final state of the story
     var isLastState: Bool {
         currentStateIndex == states.count - 1
     }
-
-    // MARK: - Interaction Logic
-    func isElementInteractive(_ elementIndex: Int) -> Bool {
-        return isWaitingForElementTap && currentState.dialogueInfo?.elementIndex == elementIndex
+    
+    // MARK: - Initialization
+    
+    init() {
+        print("🔄 StoryStateManager initialized at state \(currentStateIndex)")
+        setupInteractionForCurrentState()
     }
     
+    // MARK: - Public Interface
+    
+    /// Determines if a specific element should be interactive in the current state
+    func isElementInteractive(_ elementIndex: Int) -> Bool {
+        isWaitingForElementTap && currentState.dialogueInfo?.elementIndex == elementIndex
+    }
+    
+    /// Handles a tap on an interactive element
     func handleElementTap(elementIndex: Int) {
         print("👆 Element \(elementIndex) tapped")
+        
         guard isWaitingForElementTap,
               let dialogueInfo = currentState.dialogueInfo,
               dialogueInfo.elementIndex == elementIndex else {
-            print("🚫 Tap ignored (not waiting for this element or not waiting at all)")
+            print("🚫 Element tap ignored - not expecting this interaction")
             return
         }
-        print("🎯 Element \(elementIndex) triggered dialogue")
+        
+        print("✅ Element \(elementIndex) tap accepted")
         isWaitingForElementTap = false
         showDialogue(info: dialogueInfo)
     }
     
+    /// Handles a tap on the background
     func handleBackgroundTap() {
         print("🌍 Background tapped")
-        if isAnimating { print("🚫 Animation in progress - background tap ignored"); return }
-        if isWaitingForElementTap { print("🚫 Waiting for element tap - background tap ignored."); return }
-        if isDisplayingDialogue { print("🚫 Dialogue showing - background tap ignored"); return }
         
-        print("✅ Background tap accepted. Advancing state.")
+        guard !isAnimating && !isWaitingForElementTap && !isDisplayingDialogue else {
+            print("🚫 Background tap ignored - not in correct state")
+            return
+        }
+        
+        print("✅ Background tap accepted")
         advanceToNextState()
     }
     
-    // MARK: - Dialogue Handling
-    private func showDialogue(info: DialogueInfo) {
-
-        self.currentDialogueInfo = info
-            print("🗨️ Preparing to show dialogue for element \(info.elementIndex)")
-
-            withAnimation(.easeInOut) {
-                self.isDisplayingDialogue = true
-            }
-            print("🗨️ Dialogue show animation triggered (isDisplayingDialogue = true).")
-
-            dialogueTimer?.invalidate()
-            dialogueTimer = Timer.scheduledTimer(withTimeInterval: dialogueAdvanceDelay, repeats: false) { [weak self] _ in
-                 print("⏱️ Dialogue timer finished.")
-                self?.hideDialogue()
-            }
-             print("⏱️ Dialogue auto-hide timer started (\(dialogueAdvanceDelay)s).")
-        }
+    // MARK: - Private Implementation
     
-    private func hideDialogue() {
-            // 1. Invalidate timer if it's still running (e.g., manual dismissal if implemented)
-            dialogueTimer?.invalidate()
-            dialogueTimer = nil
-
-            // 2. Check if already hidden or hiding to prevent redundant animations/logic
-            guard isDisplayingDialogue else {
-                print("🚫 Dialogue already hidden or hiding. Ignoring hideDialogue call.")
-                return
-            }
-             print("🗨️ Starting hide dialogue process...")
-
-            // 3. Trigger the hide animation by changing the flag
-            //    The view associated with `isDisplayingDialogue` will use its transition.
-            withAnimation(.easeInOut) { // Consistent animation
-                self.isDisplayingDialogue = false
-            }
-            print("🗨️ Dialogue hide animation triggered (isDisplayingDialogue = false).")
-
-            // 4. Clean up the data state *after* initiating the animation.
-            //    This ensures the DialogueViewWide still has access to `currentDialogueInfo`
-            //    during its fade-out transition if the transition needs it.
-            //    A slight delay might sometimes be needed if the transition relies heavily
-            //    on the data *during* the animation, but often just setting it after `withAnimation` works.
-            //    Let's try without delay first.
-            // DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in // Optional small delay
-                 self.currentDialogueInfo = nil
-                 print("🧹 Dialogue data cleaned up (currentDialogueInfo = nil).")
-            // }
-
-            // 5. Check for completion now that the dialogue interaction is finished.
-            checkAndTriggerCompletion()
+    /// Sets up the expected interaction for the current state
+    private func setupInteractionForCurrentState() {
+        // Reset state
+        isWaitingForElementTap = false
+        isDisplayingDialogue = false
+        currentDialogueInfo = nil
+        
+        // Configure for current state
+        if let dialogueInfo = currentState.dialogueInfo {
+            isWaitingForElementTap = true
+            print("⏳ Waiting for element \(dialogueInfo.elementIndex) tap")
+        } else {
+            print("⏳ Waiting for background tap")
         }
+    }
     
-    // MARK: - State Advancement
+    /// Advances to the next story state with animation
     private func advanceToNextState() {
-        guard !isLastState else { print("🏁 Already at last state (\(currentStateIndex))"); return }
-        guard !isAnimating else { print("🚫 Already animating - advanceToNextState call ignored"); return }
+        guard !isLastState else {
+            print("🏁 Already at final state")
+            return
+        }
         
         isAnimating = true
-        let nextStateIndex = currentStateIndex + 1
-        currentStateIndex = nextStateIndex
+        currentStateIndex += 1
         
         withAnimation(.easeInOut(duration: animationDuration)) {
             offsetPercentage = currentState.offsetPercentage
         }
         
+        // Schedule state completion after animation
         DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) { [weak self] in
             guard let self = self else { return }
             self.isAnimating = false
             print("✅ Animation to state \(self.currentStateIndex) completed")
             self.setupInteractionForCurrentState()
             
+            // Check for story completion if no element interaction is required
             if !self.isWaitingForElementTap {
-                self.checkAndTriggerCompletion()
+                self.checkForCompletion()
             }
         }
     }
     
-    /// Sets up the interaction mode for the current state.
-    private func setupInteractionForCurrentState() {
-        if currentState.hasDialogue {
-            isWaitingForElementTap = true
-            isDisplayingDialogue = false
-            currentDialogueInfo = nil
-            print("⏳ State \(currentStateIndex) requires element \(currentState.dialogueInfo?.elementIndex ?? -1) tap.")
-        } else {
-            isWaitingForElementTap = false
-            isDisplayingDialogue = false
-            currentDialogueInfo = nil
-            print("✅ State \(currentStateIndex) allows background tap to advance.")
+    /// Displays dialogue associated with an element
+    private func showDialogue(info: DialogueInfo) {
+        currentDialogueInfo = info
+        
+        withAnimation(.easeInOut) {
+            isDisplayingDialogue = true
+        }
+        
+        print("💬 Showing dialogue for element \(info.elementIndex)")
+        
+        // Schedule dialogue dismissal
+        dialogueTimer?.invalidate()
+        dialogueTimer = Timer.scheduledTimer(withTimeInterval: dialogueDelay, repeats: false) { [weak self] _ in
+            self?.hideDialogue()
         }
     }
     
-    // MARK: - Completion Logic
-    private func checkAndTriggerCompletion() {
-        guard isLastState else { return }
+    /// Hides the current dialogue with animation
+    private func hideDialogue() {
+        dialogueTimer?.invalidate()
+        dialogueTimer = nil
         
-        guard !isAnimating && !isDisplayingDialogue && !isWaitingForElementTap else {
-            print("🏁 On last state, but waiting for pending actions.")
+        guard isDisplayingDialogue else { return }
+        
+        withAnimation(.easeInOut) {
+            isDisplayingDialogue = false
+        }
+        
+        print("💬 Hiding dialogue")
+        currentDialogueInfo = nil
+        
+        // Check for story completion after dialogue is dismissed
+        checkForCompletion()
+    }
+    
+    /// Checks if the story is complete and triggers the completion callback
+    private func checkForCompletion() {
+        guard isLastState && !isAnimating && !isDisplayingDialogue && !isWaitingForElementTap else {
             return
         }
         
         guard completionTimer == nil || !(completionTimer?.isValid ?? false) else {
-            print("🏁 Completion already scheduled.")
+            print("⏱️ Completion already scheduled")
             return
         }
         
-        print("🏁 Final state (\(currentStateIndex)) reached and actions complete. Scheduling level completion in \(completionDelay)s.")
+        print("🏁 Story complete - scheduling completion callback in \(completionDelay)s")
         
         completionTimer = Timer.scheduledTimer(withTimeInterval: completionDelay, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            print("⏱️ Completion delay finished. Calling completion callback.")
-            self.completionCallback?() // Call the callback instead of directly invoking levelManager.completeLevel()
+            print("✅ Executing completion callback")
+            self?.completionCallback?()
         }
     }
     
-    // MARK: - Debug Functions
-    private func printStateTransition(from oldState: Int, to newState: Int) {
-         guard states.indices.contains(newState) else { return }
-         print("------------------------")
-         print("🔀 STATE CHANGE: \(oldState) → \(newState)")
-         print("📊 State \(newState) of \(states.count - 1)")
-         print("🔢 Offset: \(states[newState].offsetPercentage)")
-         print("💬 Has Dialogue: \(states[newState].hasDialogue)")
-         if let info = states[newState].dialogueInfo {
-             print("  > Element Index: \(info.elementIndex)")
-         }
-         print("------------------------")
+    /// Logs state transitions for debugging
+    private func logStateTransition(from oldState: Int) {
+        print("🔄 State transition: \(oldState) → \(currentStateIndex)")
+        print("   Offset: \(currentState.offsetPercentage)")
+        print("   Has dialogue: \(currentState.hasDialogue)")
+        
+        if let info = currentState.dialogueInfo {
+            print("   Dialogue element: \(info.elementIndex)")
+        }
     }
     
     // MARK: - Cleanup
+    
     deinit {
         dialogueTimer?.invalidate()
         completionTimer?.invalidate()
-        print("🗑️ StoryStateManager deinitialized")
+        print("🗑️ StoryStateManager released")
     }
 }

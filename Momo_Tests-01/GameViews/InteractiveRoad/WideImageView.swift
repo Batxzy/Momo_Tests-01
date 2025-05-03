@@ -34,7 +34,8 @@ struct WideImageView: View {
     var image = Image("wide")
     
     @Environment(LevelManager.self) private var levelManager
-    @State private var stateManager = StoryStateManager()
+    
+    private var stateManager = StoryStateManager()
 
     //guarda las dimenciones de la imagen del fondo
     @State private var imageSize = CGSize.zero
@@ -119,16 +120,20 @@ struct WideImageView: View {
                         .offset(x: calculateOffset())
                         
                         // Character
-                        Image("Momo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 200, height: 300)
-                            .shadow(color: .white, radius: 12)
-                            .position(
-                                x: frameGeometry.size.width * 0.3,
-                                y: frameGeometry.size.height * 0.75
+                       SpriteAnimationView(
+                            frameImages: ["cat3", "cat1", "cat2", "cat1"],
+                            frameDuration: 0.2,
+                            isTransitioning: Binding(
+                                get: { stateManager.isAnimating },
+                                set: { _ in } // We don't need to set this from the animation view
                             )
-                            .allowsHitTesting(false)
+                        )
+                        .frame(width: 200, height: 300)
+                        .position(
+                            x: frameGeometry.size.width * 0.3,
+                            y: frameGeometry.size.height * 0.75
+                        )
+                        .allowsHitTesting(false)
                         
                         
                         ZStack {
@@ -151,6 +156,6 @@ struct WideImageView: View {
         }
     }
 #Preview{
-    WideImageView(image: Image( "wide"))
+    WideImageView()
         .environment(LevelManager())
 }
