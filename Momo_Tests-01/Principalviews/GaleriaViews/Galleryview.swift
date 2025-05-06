@@ -78,6 +78,7 @@ struct GalleryviewGrid: View {
                         }
                     } label: {
                         GridItemView(imageName: item.imageName, isUnlocked: isUnlocked)
+                            .contentShape(Rectangle())
                             .matchedTransitionSource(id: item.imageName, in: gridItemTransition)
                     }
                     .buttonStyle(.plain)
@@ -125,7 +126,6 @@ struct Galleryview: View {
         .padding(20)
         .background(.white)
         .navigationBarHidden(true)
-        .ignoresSafeArea(edges: .bottom)
     }
 }
 
@@ -167,6 +167,7 @@ struct Galleryview: View {
                  // Simulate unlocking based on the galleryItems structure
                  // Example: Unlock chapter 0 (required for first two items)
                  let chapterIndexToUnlock = 0
+                
                  if previewLevelManager.chapters.indices.contains(chapterIndexToUnlock) {
                      // Mark all levels in that chapter as completed
                      for i in 0..<previewLevelManager.chapters[chapterIndexToUnlock].levels.count {

@@ -132,7 +132,7 @@ struct Test_ContentView: View {
             backgroundHeight: 700,
             foregroundWidth: 347,
             foregroundHeight: 700,
-            completionThreshold: 90.0)),AnyView(DragProgressView(swipeSensitivity: 2.0, Ilustration: Image("reason")))
+            completionThreshold: 90.0))
         ]
         
         // Use the container with your views

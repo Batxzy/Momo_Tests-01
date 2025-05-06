@@ -8,7 +8,7 @@ struct TapProgressView: View {
     
     private let ilustrationWidth: CGFloat = 320
     
-    private let ilustrationHeight: CGFloat = 580
+    private let ilustrationHeight: CGFloat = 560
         
     // Track progress from 0 to 1
     @State private var progress: Double = 0.0
@@ -31,6 +31,8 @@ struct TapProgressView: View {
     private let decrementAmount: Double = 0.03
     // Timer interval
     private let timerInterval: TimeInterval = 0.1
+    
+    private let ButtonTime: Double = 1.7
     
 //MARK: - Funciones
     private func handleTap() {
@@ -55,8 +57,7 @@ struct TapProgressView: View {
         isComplete = true
         stopTimer()
         
-        // Add delay before showing the button
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + ButtonTime) {
             withAnimation {
                 showButton = true
             }
@@ -81,7 +82,7 @@ struct TapProgressView: View {
     }
 //MARK: - View
     var body: some View {
-    ZStack {
+        ZStack(alignment: .top) {
         Color.white
             .ignoresSafeArea()
         
@@ -93,20 +94,21 @@ struct TapProgressView: View {
                     .resizable()
                     .scaledToFill()
                     .frame(width: ilustrationWidth, height: ilustrationHeight)
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                     .opacity(isComplete ? 0 : 1)
                 
                 SecondIllustration
                     .resizable()
                     .scaledToFill()
                     .frame(width: ilustrationWidth, height: ilustrationHeight)
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                     .opacity(isComplete ? 1 : 0)
+                
             }
-            .animation(.easeInOut(duration: 0.7), value: isComplete)
+            .animation(.easeIn(duration: 0.7), value: isComplete)
             
             // -- barra de progreso y boton --//
-            VStack(spacing: 24) {
+            VStack(spacing: 10) {
                 
                 // -- barra de progreso --//
                 GeometryReader { geometry in
@@ -129,12 +131,14 @@ struct TapProgressView: View {
                 }
                 .frame(width: 300,height: 47)
                 
+                
                 // -- if para el boton o la barra --//
                    if isComplete {
                        if showButton {
                            CustomButtonView(title: "siguiente") {
                                levelManager.completeLevel()
                            }
+                           .padding(.vertical, 25)
                            .transition(.opacity)
                        } else {
                            Color.clear
@@ -142,11 +146,10 @@ struct TapProgressView: View {
                        }
                    }
                     else {
-                        
-                       Image("Listen")
+                       Image("Listen_2")
                            .resizable()
-                           .scaledToFill()
-                           .frame(width: 100, height: 100)
+                           .scaledToFit()
+                           .frame(height: 120)
                            .contentShape(Rectangle())
                            .scaleEffect(isTapped ? 0.80 : 1.0)
                            .opacity(isTapped ? 0.75 : 1.0)
@@ -157,6 +160,7 @@ struct TapProgressView: View {
                 }
                 .frame(height: 150,alignment: .top)
                 .animation(.smooth, value: isComplete)
+                
             
                 }
             }
@@ -170,6 +174,6 @@ struct TapProgressView: View {
 }
 
 #Preview {
-    TapProgressView(FirstIllustration: Image("rectangle33"), SecondIllustration: Image("rectangle35"))
+    TapProgressView(FirstIllustration: Image("ListenGame_1(1)"), SecondIllustration: Image("ListenGame_1(2)"))
         .environment(LevelManager())
 }

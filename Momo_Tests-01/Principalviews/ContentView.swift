@@ -81,6 +81,7 @@ struct ContentView: View {
 }
 
 #Preview {
+    
     struct GameViewPreviewContainer: View {
          @State var previewPath = NavigationPath()
          @State var previewLevelManager = LevelManager()
@@ -93,6 +94,10 @@ struct ContentView: View {
                      }
              }
              .environment(previewLevelManager)
+             .onAppear {
+                 // Set the chapter index when preview appears
+                 previewLevelManager.currentChapterIndex = 2
+             }
          }
      }
      return GameViewPreviewContainer()

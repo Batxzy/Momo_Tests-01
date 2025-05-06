@@ -34,7 +34,7 @@ struct ImageScrollView: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: imageWidth, height: imageHeight)
-                                .clipped()
+                                .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                         }
                         
                         HStack {
@@ -44,14 +44,16 @@ struct ImageScrollView: View {
                                 levelManager.completeLevel()
                             }
                     }
+                            .frame(width: imageWidth)
                 }
-                .frame(width: imageWidth)
+                
             }
+            
         }
     }
 }
 
 #Preview {
-    ImageScrollView(images: [Image("Reason"), Image("rectangle33")])
+    ImageScrollView(images: Scroll_2_4)
         .environment(LevelManager())
 }

@@ -17,11 +17,12 @@ struct MainMenu: View {
         VStack(spacing: 30) {
             
             // Imagen principal del menú
-            Image("Reason")
+            Image("MOMO-main")
                 .resizable()
                 .scaledToFill()
                 .frame(width: 288, height: 420)
                 .clipped()
+                .fadingEdgeGradient(topHeight: 0, bottomHeight: 20, solidStop: 1)
 
             //-- contenedor  de botones --//
             VStack(spacing: 8) {

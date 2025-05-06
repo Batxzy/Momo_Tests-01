@@ -10,6 +10,10 @@ struct DragProgressView: View {
     @State private var isComplete: Bool = false
     @State private var timer: Timer?
     @State private var isDragging: Bool = false
+    @State private var showSecondImage: Bool = false
+    @State private var dragSpeed: CGFloat = 0.0
+    @State private var lastSpeedCheckTime: Date = Date()
+
 
     // Configuration
     let swipeSensitivity: Double // User-defined sensitivity (1-10)
@@ -19,9 +23,15 @@ struct DragProgressView: View {
     let progressBarHeight: CGFloat = 20
     
     let Ilustration : Image
+    let secondIlustration : Image
     
     @State private var lastDragPosition: CGPoint = .zero
+    @State private var lastDragTime: Date = Date()
+
     
+    private let speedThreshold: CGFloat = 100
+    private let imageChangeDelay: TimeInterval = 0.2
+
     // posicion del rectanglo verde
     let greenRectRelativePosition: CGPoint = CGPoint(x: 0.5, y: 0.80)
 
@@ -42,63 +52,96 @@ struct DragProgressView: View {
         return maxMultiplier - ((validatedSensitivity - 1) / 9.0) * (maxMultiplier - minMultiplier)
     }
     
-    // Drag Gesture Logic
     private var dragGesture: some Gesture {
-            DragGesture(minimumDistance: 1) // Lower minimum distance for responsiveness
-                .onChanged { value in
-                    if !isDragging {
-                        isDragging = true
-                        lastDragPosition = value.location // Initialize last position
-                        // Stop the timer immediately when dragging starts
-                        stopTimer()
-                    } else {
-                        // Calculate distance of this small drag motion delta
-                        let currentPos = value.location
-                        let dx = currentPos.x - lastDragPosition.x
-                        let dy = currentPos.y - lastDragPosition.y
-                        let distanceDelta = sqrt(dx*dx + dy*dy) // Distance of this segment
+        DragGesture(minimumDistance: 1)
+            .onChanged { value in
+                if !isDragging {
+                    isDragging = true
+                    lastDragPosition = value.location
+                    lastDragTime = Date()
+                    lastSpeedCheckTime = Date()
+                    stopTimer()
+                } else {
+                    let currentPos = value.location
+                    let currentTime = Date()
+                    
+                    let dx = currentPos.x - lastDragPosition.x
+                    let dy = currentPos.y - lastDragPosition.y
+                    let distance = sqrt(dx*dx + dy*dy)
+                    
+                    let timeDelta = currentTime.timeIntervalSince(lastDragTime)
+                    
+                    // Calculate speed (pixels per second)
+                    if timeDelta > 0 {
+                        dragSpeed = CGFloat(distance / CGFloat(timeDelta))
+                        
+                        // Only check for image change if enough time has passed
+                        let timeSinceLastCheck = currentTime.timeIntervalSince(lastSpeedCheckTime)
+                        if timeSinceLastCheck >= imageChangeDelay {
+                            // MODIFIED: Added "sticky" behavior to prevent rapid toggling
+                            if dragSpeed > speedThreshold + 50 {
+                                showSecondImage = true
+                            } else if dragSpeed < speedThreshold - 50 {
+                                showSecondImage = false
+                            }
+                            // (keeping current state if speed is in the "buffer zone")
+                            
+                            // Reset last check time
+                            lastSpeedCheckTime = currentTime
+                        }
+                    }
 
-                        // Update progress based on the delta distance and multiplier
-                        let increment = Double(distanceDelta) * dragMultiplier
-                        progress = min(progress + increment, 1.0) // Accumulate and clamp
+                    // Update progress based on distance
+                    let increment = Double(distance) * dragMultiplier
+                    progress = min(progress + increment, 1.0)
 
-                        // Check if complete
-                        if progress >= 1.0 && !isComplete {
-                            isComplete = true
+                    // Check if complete
+                    if progress >= 1.0 && !isComplete {
+                        isComplete = true
+                        // Force second image when complete
+                        showSecondImage = true
+                        
+                        // After 3 seconds, complete the level
+                        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
                             levelManager.completeLevel()
                         }
-
-                        // Update last position for the next delta calculation
-                        lastDragPosition = currentPos
                     }
-                }
-                .onEnded { _ in
-                    isDragging = false
-                    // Reset last position (optional, but good practice)
-                    lastDragPosition = .zero
-                    // Restart timer only if not complete
-                    if !isComplete {
-                        startTimer()
-                    }
-                }
-        }
 
-    // Timer Management Functions
+                    // Update for next calculation
+                    lastDragPosition = currentPos
+                    lastDragTime = currentTime
+                }
+            }
+            .onEnded { _ in
+                isDragging = false
+                lastDragPosition = .zero
+                
+                // Only return to first image if not complete
+                if !isComplete {
+                    // MODIFIED: Increased delay to make it more noticeable
+                    Timer.scheduledTimer(withTimeInterval: 0.7, repeats: false) { _ in
+                        if !isComplete {
+                            showSecondImage = false
+                        }
+                    }
+                    startTimer()
+                }
+            }
+    }
+
+
+
     private func startTimer() {
-        // Invalidate existing timer just in case
         timer?.invalidate()
-        // Only start if not complete and not currently dragging
         if !isComplete && !isDragging {
             timer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) { _ in
-                // Check isDragging again inside timer closure for safety
                 if !isDragging && progress > 0 {
                     progress = max(progress - decrementAmount, 0.0)
                     if progress == 0.0 {
-                        stopTimer() // Stop timer if progress reaches zero
+                        stopTimer()
                     }
                 } else if isDragging {
-                    // If dragging starts unexpectedly while timer is running, stop it.
-                     stopTimer()
+                    stopTimer()
                 }
             }
         }
@@ -115,26 +158,36 @@ struct DragProgressView: View {
             
             //--- Drag Area ----
             ZStack {
-                Ilustration
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
-                    .clipped()
-                    .overlay(
-                        GeometryReader { blueGeometry in
-                            Rectangle()
-                                .fill(Color.clear)
-                                .frame(width: greenRectangleSize.width, height: greenRectangleSize.height)
-                                .contentShape(Rectangle()) // This preserves hit testing area
-                                .position(
-                                    x: blueGeometry.size.width * greenRectRelativePosition.x,
-                                    y: blueGeometry.size.height * greenRectRelativePosition.y
-                                )
-                                .gesture(dragGesture)
-                        }
-                    )
+                Group {
+                    if showSecondImage {
+                        secondIlustration
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
+                            .clipped()
+                    } else {
+                        Ilustration
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: blueRectangleSize.width, height: blueRectangleSize.height)
+                            .clipped()
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
+                
+                // Overlay for drag gesture
+                GeometryReader { blueGeometry in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(width: greenRectangleSize.width, height: greenRectangleSize.height)
+                        .contentShape(Rectangle()) // This preserves hit testing area
+                        .position(
+                            x: blueGeometry.size.width * greenRectRelativePosition.x,
+                            y: blueGeometry.size.height * greenRectRelativePosition.y
+                        )
+                        .gesture(dragGesture)
+                }
             }
-            
             // --- Progress Bar Area ---
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -169,7 +222,7 @@ struct DragProgressView: View {
 struct DragProgressView_Previews: PreviewProvider {
     static var previews: some View {
         // Example with higher sensitivity (harder to fill)
-        DragProgressView(swipeSensitivity: 9, Ilustration: Image ("Reason") )
+        DragProgressView(swipeSensitivity: 9, Ilustration: Image ("Cat_Game_1_(1)"), secondIlustration: Image("Cat_Game_1_(2)") )
             .environment(LevelManager())
     }
 }

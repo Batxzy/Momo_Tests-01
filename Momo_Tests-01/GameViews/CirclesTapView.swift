@@ -52,6 +52,7 @@ struct CirclesView: View {
                     .scaledToFill()
                     .frame(width: ilustrationWidth, height: ilustrationHeight)
                     .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 
                 HStack(spacing: 20) {
                     

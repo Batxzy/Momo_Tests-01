@@ -129,25 +129,25 @@ import SwiftUI
                 
                 Level(
                     id: UUID(),
-                    name: "Tap Game",
-                    content: AnyView(TapProgressView(FirstIllustration: Image("rectangle33"), SecondIllustration: Image("rectangle35"))),
+                    name: "ListenGame_1",
+                    content: AnyView(TapProgressView(FirstIllustration: Image("ListenGame_1(1)"), SecondIllustration: Image("ListenGame_1(2)"))),
                     transition: .cameraPan,
                     isCompleted: false
                 ),
                 
                 Level(
                     id: UUID(),
-                    name: "Circle tap",
-                    content: AnyView(CirclesView(ilustration:Image("Reason"))),
+                    name: "Eating",
+                    content: AnyView(CirclesView(ilustration:Image("Eating_1(1)"))),
                     transition: .cameraPan,
                     isCompleted: false
                 ),
                 
                 Level(
                     id: UUID(),
-                    name: "Drag Game",
+                    name: "Cat_Drag",
                     content: AnyView(DragProgressView(
-                        swipeSensitivity: 8.0, Ilustration: Image("Reason"))
+                        swipeSensitivity: 8.0, Ilustration: Image("Cat_Game_1_(1)"), secondIlustration: Image("Cat_Game_1_(2)"))
                     ),
                     transition: .cameraPan,
                     isCompleted: false
@@ -155,7 +155,7 @@ import SwiftUI
                 
                 Level(
                     id: UUID(),
-                    name: "Dust Remover",
+                    name: "Old_Man_dreams",
                     content: AnyView(DustRemoverView2(
                         backgroundImage: Image("rectangle33"),
                         foregroundImage: Image("rectangle35"),
