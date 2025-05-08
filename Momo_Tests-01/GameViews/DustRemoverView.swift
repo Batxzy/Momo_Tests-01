@@ -225,7 +225,7 @@ struct DustRemoverView2: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: backgroundWidth, height: backgroundHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
+                        .clipped()
                     
                     foregroundImage
                         .resizable()
@@ -234,9 +234,8 @@ struct DustRemoverView2: View {
                         .clipped()
                         .mask(scratchMask)
                         .gesture(dragGesture)
-                        .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 }
-                
+                .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 HStack() {
                     Spacer()
                     CustomButtonView(title: "siguiente") {

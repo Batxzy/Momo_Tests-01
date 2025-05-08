@@ -162,7 +162,7 @@ import SwiftUI
                         backgroundWidth: 334,
                         backgroundHeight: 720,
                         foregroundWidth: 334,
-                        foregroundHeight: 230,
+                        foregroundHeight: 254,
                         completionThreshold: 90.0)
                     ),
                     transition: .cameraPan,
@@ -204,7 +204,7 @@ import SwiftUI
                       name: "Dialogue_2_1",
                       content: AnyView(DialogueView(
                         dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Reason"))
+                        ilustration: Image("Dialogue_2 (1)"))
                       ),
                       transition: .cameraPan,
                       isCompleted: false),
@@ -212,7 +212,7 @@ import SwiftUI
                       name: "Dialogue_2_2",
                       content: AnyView(DialogueView(
                         dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Reason"))
+                        ilustration: Image("Dialogue_2 (2)"))
                       ),
                       
                       transition: .cameraPan,
@@ -221,7 +221,7 @@ import SwiftUI
                       name: "Dialogue_2_3",
                       content: AnyView(DialogueView(
                         dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Reason"))
+                        ilustration: Image("Dialogue_2 (3)"))
                       ),
                       
                       transition: .cameraPan,
@@ -230,7 +230,7 @@ import SwiftUI
                       name: "Dialogue_2_4",
                       content: AnyView(DialogueView(
                         dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Reason"))
+                        ilustration: Image("Dialogue_2 (4)"))
                       ),
                       transition: .cameraPan,
                       isCompleted: false),
