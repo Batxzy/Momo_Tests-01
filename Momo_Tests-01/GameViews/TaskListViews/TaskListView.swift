@@ -85,7 +85,9 @@ struct TaskListView: View {
         }
     }
     private func performFinalAction() {
-        levelManager.completeLevel()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            levelManager.completeLevel()
+        }
     }
     
     // MARK: - View
@@ -99,18 +101,21 @@ struct TaskListView: View {
             VStack (spacing: 35){
                 
                 //-- contenedor de la lista de tareas --//
-                VStack(spacing: 30) {
-                ForEach(tasks.indices, id: \.self) { index in
-                                TaskRowButton(
-                                    task: tasks[index],
-                                    isDisabled: activeTaskIndex != nil,
-                                    onTap: {
-                                        handleTaskTap(at: index)
-                                    }
-                                )
-                            }
+                VStack(spacing:2) {
+                    Text ("Tareas").font(.Patrick32)
+                    VStack(spacing: 15) {
+                        ForEach(tasks.indices, id: \.self) { index in
+                            TaskRowButton(
+                                task: tasks[index],
+                                isDisabled: activeTaskIndex != nil,
+                                onTap: {
+                                    handleTaskTap(at: index)
+                                }
+                            )
                         }
+                    }
                     .padding()
+                }
                 
                 VStack(spacing: 19) {
                     HStack {
@@ -132,8 +137,8 @@ struct TaskListView: View {
                                 textAppearDelay: 0.05,
                                 textLineSpacing: 2.0,
                                 enableConstantShake: true,
-                                constantShakeIntensity: 0,
-                                constantShakeSpeed: 0,
+                                constantShakeIntensity: 0.8,
+                                constantShakeSpeed: 1.5,
                                 onAnimationComplete: {
                                 }
                             )
