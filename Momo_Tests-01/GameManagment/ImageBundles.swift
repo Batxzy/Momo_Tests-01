@@ -11,9 +11,9 @@ import SwiftUI
 
 public let Scroll_1_1 : [Image] = [Image("Scroll_1_1 Mimida(1)"),Image("Scroll_1_1 Looking at(2)"),Image("Scroll_1_1 Corriendo(3)")]
 
-public let Scroll_1_2 : [Image] = [Image("Reason"),Image("rectangle33"),Image("rectangle35")]
+public let Scroll_1_2 : [Image] = [Image("Scroll_1_2 NightSky(1)"),Image("Scroll_1_2 Awken(2)"),Image("Scroll_1_2 HiMomo(3)"),Image("Scroll_1_2 LetsGoo(4)")]
 
-public let Scroll_2_1 : [Image] = [Image("rectangle33"),Image("rectangle33"),Image("Reason")]
+public let Scroll_2_1 : [Image] = [Image("Scroll_2_1 Enters(1)"),Image("Scroll_2_1 HiGreyMan(2)"),Image("Scroll_2_1 Chantaje(3)")]
 
 public let Scroll_2_2 : [Image] = [Image("Reason"),Image("rectangle33"),Image("rectangle35"),Image("rectangle33")]
  

@@ -225,7 +225,7 @@ struct DustRemoverView2: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: backgroundWidth, height: backgroundHeight)
-                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                     
                     foregroundImage
                         .resizable()
@@ -234,6 +234,7 @@ struct DustRemoverView2: View {
                         .clipped()
                         .mask(scratchMask)
                         .gesture(dragGesture)
+                        .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 }
                 
                 HStack() {

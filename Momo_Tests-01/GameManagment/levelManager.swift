@@ -115,8 +115,8 @@ import SwiftUI
                     id: UUID(),
                     name: "Dust Remover",
                     content: AnyView(DustRemoverView2(
-                        backgroundImage: Image("rectangle33"),
-                        foregroundImage: Image("rectangle35"),
+                        backgroundImage: Image("Scratch_game_1_1 (1)"),
+                        foregroundImage: Image("Scratch_game_1_1 (2)"),
                         backgroundWidth: 334,
                         backgroundHeight: 720,
                         foregroundWidth: 334,
@@ -157,8 +157,8 @@ import SwiftUI
                     id: UUID(),
                     name: "Old_Man_dreams",
                     content: AnyView(DustRemoverView2(
-                        backgroundImage: Image("rectangle33"),
-                        foregroundImage: Image("rectangle35"),
+                        backgroundImage: Image("Scratch_game_1_2 (1)"),
+                        foregroundImage: Image("Scratch_game_1_2 (2)"),
                         backgroundWidth: 334,
                         backgroundHeight: 720,
                         foregroundWidth: 334,

@@ -104,7 +104,7 @@ struct ChapterMenu: View {
 
             Spacer()
 
-            CustomButtonView(title: "back (temporal)") {
+            CustomButtonView(title: "back") {
                 path = NavigationPath()
             }
         }

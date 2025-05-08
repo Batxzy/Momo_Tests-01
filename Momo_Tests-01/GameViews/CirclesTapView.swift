@@ -19,23 +19,6 @@ struct CirclesView: View {
     
     @Environment(LevelManager.self) private var levelManager
     
-    @State private var circleTapped : Array = [false,false,false,false]
-
-    @State private var gameDone: Bool = false
-    
-    private var areAllCirclesTapped: Bool {
-        !circleTapped.contains(false)
-    }
-    
-    private func handleTap(at index: Int) {
-        guard !circleTapped[index] else { return }
-
-        circleTapped[index] = true
-
-        if areAllCirclesTapped {
-            levelManager.completeLevel()
-        }
-    }
     
 //MARK: - View
     var body: some View {
@@ -46,50 +29,67 @@ struct CirclesView: View {
                 .ignoresSafeArea(edges: .all)
             
             //-- contenedor ilustracion y circulos --//
-            VStack (spacing: -90){
+            VStack (spacing: -120){
                 ilustration
                     .resizable()
                     .scaledToFill()
                     .frame(width: ilustrationWidth, height: ilustrationHeight)
-                    .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 
-                HStack(spacing: 20) {
                     
-                    ForEach(0..<4, id: \.self) { index in
-                        Circle()
-                            .frame(width: 50, height: 50)
-                        
-                        //** controla la animacion de la escala **//
-                            .animation(.spring (response: 0.3, dampingFraction: 0.4)){
-                                $0.scaleEffect(circleTapped[index] ? 1.5 : 1.0)
-                            }
-                        
-                        //** controla la animacion de la opacidad **//
-                            .animation(.easeOut.delay(0.3)){
-                                $0.opacity(circleTapped[index] ? 0 : 1)
-                            }
-                        
-                            .onTapGesture {
-                                handleTap(at: index)
-                            }
-                    }
-                }
-                    .frame(width: 300, height: 220 )
-                    .background()
+                    ImageSequenceGame()
+                    .frame(width: 293, height: 232 )
                     .cornerRadius(20)
                     .overlay{
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(style: StrokeStyle(lineWidth: 4))
-                            .foregroundColor(.black)
-                    }
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(style: StrokeStyle(lineWidth: 4))
+                                .foregroundColor(.black)
+                        }
+            }
+        }
+    }
+}
+struct ImageSequenceGame: View {
+    let imageNames = ["Food_1(1)", "Food_1(2)", "Food_1(3)", "Food_1(4)"]
+    
+    @State private var currentImageIndex = 0
+    
+    @State private var isLevelComplete = false
+    
+    @Environment(LevelManager.self) private var levelManager
+
+    var body: some View {
+        VStack {
+            Image(imageNames[currentImageIndex])
+                .resizable()
+                .scaledToFit()
+                
+                .contentTransition(.symbolEffect(.automatic))
+            
+            .onTapGesture {
+                if !isLevelComplete {
+                    handleTap()
+                }
+            }
+        }
+    }
+    private func handleTap() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            // Check if we need to advance to the next image
+            if currentImageIndex < imageNames.count - 1 {
+                // Move to next image
+                currentImageIndex += 1
+            } else {
+                isLevelComplete = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                levelManager.completeLevel()
+                            }
             }
         }
     }
 }
 
-
 #Preview {
-    CirclesView( ilustration: Image("rectangle33"))
+    CirclesView( ilustration: Image("Eating_1(1)"))
         .environment(LevelManager())
 }
