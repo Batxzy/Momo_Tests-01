@@ -11,7 +11,6 @@ struct TaskItem: Identifiable {
     let id = UUID() 
     var title: String
     var initialImageName: Image
-    var finalImageName: Image
     var Dialogueimage : Image
     var isCompleted: Bool = false
 }

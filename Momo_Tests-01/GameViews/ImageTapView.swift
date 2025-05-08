@@ -25,7 +25,7 @@ struct ImageTap: View {
                 .resizable()
                 .scaledToFill()
                 .frame(width: ilustrationWidth, height: ilustrationHeight)
-                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                 .onTapGesture {
                     guard !didTap else { return }
                         didTap = true 

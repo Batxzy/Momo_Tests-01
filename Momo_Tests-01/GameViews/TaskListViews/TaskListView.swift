@@ -35,33 +35,18 @@ struct TaskListView: View {
         
         _tasks = State(initialValue: [
             TaskItem(
-                title: "Actividad 1",
-                initialImageName: Image("rectangle33"),
-                finalImageName: Image("rectangle35"),
+                title: "Dar en adopcion al gato",
+                initialImageName: Image("interaccion8(1)"),
                 Dialogueimage: Image("Reason")
             ),
             TaskItem(
-                title: "Actividad 2",
-                initialImageName: Image("rectangle33"),
-                finalImageName: Image("rectangle35"),
+                title: "Dejar ir tu interés romántico",
+                initialImageName: Image("interaccion8(2)"),
                 Dialogueimage: Image("rectangle33")
             ),
             TaskItem(
-                title: "Actividad 3",
-                initialImageName: Image("rectangle33"),
-                finalImageName: Image("rectangle35"),
-                Dialogueimage: Image("rectangle35")
-            ),
-            TaskItem(
-                title: "Actividad 4",
-                initialImageName: Image("rectangle33"),
-                finalImageName: Image("rectangle35"),
-                Dialogueimage: Image("Reason")
-            ),
-            TaskItem(
-                title: "Actividad 5",
-                initialImageName: Image("rectangle33"),
-                finalImageName: Image("rectangle35"),
+                title: "Menos salidas con amigos 3",
+                initialImageName: Image("interaccion8(3)"),
                 Dialogueimage: Image("rectangle35")
             )
         ])
@@ -73,7 +58,7 @@ struct TaskListView: View {
         if !tasks[index].isCompleted && activeTaskIndex == nil {
             
             //** Controla cuanto dura la animacion al pasar a la tarea inicio **//
-            withAnimation(.easeInOut(duration: 0.5)) {
+            withAnimation(.easeInOut(duration: 0.9)) {
                 activeTaskIndex = index
             }
         }
@@ -90,7 +75,7 @@ struct TaskListView: View {
         shouldUpdateDialogImage = true
         
         //** Controla cuanto dura la animacion al pasar a la tarea final **//
-        withAnimation(.easeInOut(duration: 0.5)) {
+        withAnimation(.easeInOut(duration: 0.9)) {
             activeTaskIndex = nil
         }
         
@@ -149,7 +134,6 @@ struct TaskListView: View {
             if let index = activeTaskIndex {
                 ImageChangeView(
                     initialImage: tasks[index].initialImageName,
-                    finalImage: tasks[index].finalImageName,
                     onComplete: {
                         completeTask(at: index)
                     }

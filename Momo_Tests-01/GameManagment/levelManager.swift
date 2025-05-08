@@ -274,13 +274,13 @@ import SwiftUI
                 
                 Level(id: UUID(),
                       name: "Tap_2-1",
-                      content: AnyView(ImageTap(iulstration:Image ("Reason"))),
+                      content: AnyView(ImageTap(iulstration:Image ("Interaccion 7 mensaje 1"))),
                       transition: .cameraPan,
                       isCompleted: false
                      ),
                 Level(id: UUID(),
                       name: "Tap_2-2",
-                      content: AnyView(ImageTap(iulstration:Image ("rectangle35"))),
+                      content: AnyView(ImageTap(iulstration:Image ("Interaccion 7 mensaje 2"))),
                       transition: .cameraPan,
                       isCompleted: false
                      ),

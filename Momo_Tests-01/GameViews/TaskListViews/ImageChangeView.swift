@@ -11,14 +11,12 @@ struct ImageChangeView: View {
 
 //MARK: - variables funciones y init
     let initialImage: Image
-    let finalImage: Image
     let onComplete: () -> Void
 
     @State private var wasClicked: Bool = false
 
-    init(initialImage: Image, finalImage: Image, onComplete: @escaping () -> Void) {
+    init(initialImage: Image, onComplete: @escaping () -> Void) {
         self.initialImage = initialImage
-        self.finalImage = finalImage
         self.onComplete = onComplete
     }
 
@@ -30,10 +28,8 @@ struct ImageChangeView: View {
             wasClicked = true
         }
         
-        //** delay antes de que se vuelva a la pantalla de tasks **//
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             onComplete()
-        }
+        
     }
 
 //MARK: - view
@@ -53,12 +49,6 @@ struct ImageChangeView: View {
                         .clipped()
                         .opacity(wasClicked ? 0 : 1)
                     
-                    finalImage
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 343, height: 673)
-                        .clipped()
-                        .opacity(wasClicked ? 1 : 0)
                 }
                 
                 CustomButtonView(title: "siguiente", action: {
@@ -76,7 +66,6 @@ struct ImageChangeView: View {
 #Preview {
     ImageChangeView(
         initialImage: Image("rectangle33"),
-        finalImage: Image("rectangle35"),
         onComplete: {
             print("Preview ImageChangeView completed!")
         }
