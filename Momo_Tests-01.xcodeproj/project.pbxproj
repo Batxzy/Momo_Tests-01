@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8C984B3E2DCC7097002B5226 /* AnimateText in Frameworks */ = {isa = PBXBuildFile; productRef = 8C984B3D2DCC7097002B5226 /* AnimateText */; };
 		8CCE65C42DAEDC3700FBA852 /* NavigationTransitions in Frameworks */ = {isa = PBXBuildFile; productRef = 8CCE65C32DAEDC3700FBA852 /* NavigationTransitions */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +29,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8CCE65C42DAEDC3700FBA852 /* NavigationTransitions in Frameworks */,
+				8C984B3E2DCC7097002B5226 /* AnimateText in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +73,7 @@
 			name = "Momo_Tests-01";
 			packageProductDependencies = (
 				8CCE65C32DAEDC3700FBA852 /* NavigationTransitions */,
+				8C984B3D2DCC7097002B5226 /* AnimateText */,
 			);
 			productName = "Momo_Tests-01";
 			productReference = 8C9F79832DA859F6003029E0 /* Momo_Tests-01.app */;
@@ -102,6 +105,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				8CCE65C22DAEDC3700FBA852 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */,
+				8C984B3C2DCC7097002B5226 /* XCRemoteSwiftPackageReference "AnimateText" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8C9F79842DA859F6003029E0 /* Products */;
@@ -261,6 +265,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Momo_Tests-01/Preview Content\"";
+				DEVELOPMENT_TEAM = 88RHA9SDT6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Momo-Tests-01-Info.plist";
@@ -291,6 +296,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Momo_Tests-01/Preview Content\"";
+				DEVELOPMENT_TEAM = 88RHA9SDT6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Momo-Tests-01-Info.plist";
@@ -337,6 +343,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		8C984B3C2DCC7097002B5226 /* XCRemoteSwiftPackageReference "AnimateText" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jasudev/AnimateText";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.0;
+			};
+		};
 		8CCE65C22DAEDC3700FBA852 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/davdroman/swiftui-navigation-transitions.git";
@@ -348,6 +362,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		8C984B3D2DCC7097002B5226 /* AnimateText */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8C984B3C2DCC7097002B5226 /* XCRemoteSwiftPackageReference "AnimateText" */;
+			productName = AnimateText;
+		};
 		8CCE65C32DAEDC3700FBA852 /* NavigationTransitions */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 8CCE65C22DAEDC3700FBA852 /* XCRemoteSwiftPackageReference "swiftui-navigation-transitions" */;

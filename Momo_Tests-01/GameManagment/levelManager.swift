@@ -200,28 +200,51 @@ import SwiftUI
                       isCompleted: false
                      ),
                 
+                
                 Level(id: UUID(),
                       name: "Dialogue_2_1",
-                      content: AnyView(DialogueView(
-                        dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Dialogue_2 (1)"))
+                      content: AnyView( DialogueView(
+                        dialogueTexts: [ "¿Te preocupa"," el futuro?"
+                        ],
+                        illustrationImage: Image("Dialogue_2 (1)"),
+                        textFont: .Patrick48,
+                        textAppearDelay: 3,
+                        textLineSpacing: 2,
+                        enableConstantShake: true,
+                        constantShakeIntensity: 0.8,
+                        constantShakeSpeed: 2.2)
                       ),
                       transition: .cameraPan,
                       isCompleted: false),
+                
                 Level(id: UUID(),
                       name: "Dialogue_2_2",
                       content: AnyView(DialogueView(
-                        dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Dialogue_2 (2)"))
+                        dialogueTexts: [ "¿Cuánto habrías", "logrado si hubieras", "comenzado antes?"
+                        ],
+                        illustrationImage: Image("Dialogue_2 (2)"),
+                        textFont: .Patrick32,
+                        textAppearDelay: 3,
+                        textLineSpacing: 2,
+                        enableConstantShake: true,
+                        constantShakeIntensity: 0.8,
+                        constantShakeSpeed: 2.2)
                       ),
-                      
                       transition: .cameraPan,
                       isCompleted: false),
+                
                 Level(id: UUID(),
                       name: "Dialogue_2_3",
                       content: AnyView(DialogueView(
-                        dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Dialogue_2 (3)"))
+                        dialogueTexts: [ "¿Realmente puedes ", "permitirte el lujo de", "detenerte ahora?"
+                        ],
+                        illustrationImage: Image("Dialogue_2 (3)"),
+                        textFont: .Patrick32,
+                        textAppearDelay: 3,
+                        textLineSpacing: 2,
+                        enableConstantShake: true,
+                        constantShakeIntensity: 0.8,
+                        constantShakeSpeed: 2.2)
                       ),
                       
                       transition: .cameraPan,
@@ -229,12 +252,19 @@ import SwiftUI
                 Level(id: UUID(),
                       name: "Dialogue_2_4",
                       content: AnyView(DialogueView(
-                        dialogueImage: Image("rectangle33"),
-                        ilustration: Image("Dialogue_2 (4)"))
+                        dialogueTexts: [ "Recuerda que ya","no hay vuelta atrás"
+                        ],
+                        illustrationImage: Image("Dialogue_2 (4)"),
+                        textFont: .Patrick32,
+                        textAppearDelay: 3,
+                        textLineSpacing: 10,
+                        enableConstantShake: true,
+                        constantShakeIntensity: 0.8,
+                        constantShakeSpeed: 2.2)
                       ),
                       transition: .cameraPan,
                       isCompleted: false),
-                
+                        
                 Level(id: UUID(),
                       name: "2_2",
                       content: AnyView(ImageScrollView(images:Scroll_2_2)),

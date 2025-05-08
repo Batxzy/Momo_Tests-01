@@ -1,6 +1,15 @@
 {
-  "originHash" : "c3920913fc35f1da66d59315c931dfb688679fa9ee4a3381d3bb87caa172d10a",
+  "originHash" : "2c10342ab5df37f11c44283c967593e6a001b2a70dd9f35a7f39f8da6f6af20f",
   "pins" : [
+    {
+      "identity" : "animatetext",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jasudev/AnimateText",
+      "state" : {
+        "revision" : "c55847e03bb3f36cf83cc217fe60ec5feda9ddd6",
+        "version" : "0.5.0"
+      }
+    },
     {
       "identity" : "swiftui-introspect",
       "kind" : "remoteSourceControl",

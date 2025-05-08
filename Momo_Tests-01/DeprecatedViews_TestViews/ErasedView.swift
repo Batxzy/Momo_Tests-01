@@ -129,6 +129,15 @@ struct DustRemoverView: View {
     
 //MARK: - view
     var body: some View {
+        
+        Text("fdsffds\nfsdfds")
+        .font(.Patric29)
+        .multilineTextAlignment(.center)
+        .lineLimit(nil) // Allow text to wrap
+        .fixedSize(horizontal: false, vertical: true) // Crucial for multi-line text height calculation
+        .minimumScaleFactor(0.5) // Allow text to shrink to fit
+        .debugStroke()
+        
         ZStack {
             // Background image
             backgroundImage
