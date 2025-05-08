@@ -113,14 +113,20 @@ extension View {
 }
 
 let galleryItems: [ImageGalleryItem] = [
-    ImageGalleryItem(imageName: "rectangle33", requiredChapterIndex: 0, title: "Chapter 1 - Image 1"),
-    ImageGalleryItem(imageName: "rectangle35", requiredChapterIndex: 0, title: "Chapter 1 - Image 2"), // Corrected imageName from duplicate
-    ImageGalleryItem(imageName: "Shinji", requiredChapterIndex: 1, title: "Chapter 2 - Image 1"),
-    ImageGalleryItem(imageName: "rectangle1", requiredChapterIndex: 1, title: "Chapter 2 - Image 2"),
-    ImageGalleryItem(imageName: "rectangle2", requiredChapterIndex: 2, title: "Chapter 3 - Image 1"),
+    ImageGalleryItem(imageName: "Cat_Game_1_(1)", requiredChapterIndex: 0, title: "Chapter 1 - Image 1"),
+    ImageGalleryItem(imageName: "Eating_1(1)", requiredChapterIndex: 0, title: "Chapter 1 - Image 1"),
+    ImageGalleryItem(imageName: "Dialogue_2 (1)", requiredChapterIndex: 1, title: "Chapter 2 - Image 1"),
+    ImageGalleryItem(imageName: "Dialogue_2 (2)", requiredChapterIndex: 1, title: "Chapter 2 - Image 2"),
+    ImageGalleryItem(imageName: "Dialogue_2 (3)", requiredChapterIndex: 1, title: "Chapter 3 - Image 1"),
+    ImageGalleryItem(imageName: "Dialogue_2 (4)", requiredChapterIndex: 1, title: "Chapter 3 - Image 1"),
+    ImageGalleryItem(imageName: "interaccion8(1)", requiredChapterIndex: 2, title: "Chapter 3 - Image 1"),
+    ImageGalleryItem(imageName: "interaccion8(2)", requiredChapterIndex: 2, title: "Chapter 3 - Image 1"),
+    ImageGalleryItem(imageName: "interaccion8(3)", requiredChapterIndex: 2, title: "Chapter 3 - Image 1"),
     ImageGalleryItem(imageName: "rectangle3", requiredChapterIndex: 3, title: "Chapter 4 - Image 1"),
-    ImageGalleryItem(imageName: "wide", requiredChapterIndex: 3, title: "Chapter 4 - Image 2"), // Added 'wide' based on previous code
-    // Add more items as needed
+    ImageGalleryItem(imageName: "wide", requiredChapterIndex: 3, title: "Chapter 4 - Image 2"),
+    ImageGalleryItem(imageName: "5.1", requiredChapterIndex: 3, title: "Chapter 4 - Image 2"),
+    ImageGalleryItem(imageName: "5.2", requiredChapterIndex: 3, title: "Chapter 4 - Image 2"),
+    ImageGalleryItem(imageName: "5.3", requiredChapterIndex: 3, title: "Chapter 4 - Image 2")
 ]
 
 

@@ -166,7 +166,7 @@ struct Galleryview: View {
             .onAppear {
                  // Simulate unlocking based on the galleryItems structure
                  // Example: Unlock chapter 0 (required for first two items)
-                 let chapterIndexToUnlock = 0
+                 let chapterIndexToUnlock = 2
                 
                  if previewLevelManager.chapters.indices.contains(chapterIndexToUnlock) {
                      // Mark all levels in that chapter as completed
