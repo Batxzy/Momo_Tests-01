@@ -57,8 +57,8 @@ class StoryStateManager {
     let states: [StoryState] = [
         StoryState(offsetPercentage: 0.0, dialogueInfo: nil),
         StoryState(offsetPercentage: 0.25, dialogueInfo: DialogueInfo(elementIndex: 0, dialogueImageName: "Reason")),
-        StoryState(offsetPercentage: 0.60, dialogueInfo: nil),
-        StoryState(offsetPercentage: 1.0, dialogueInfo: DialogueInfo(elementIndex: 2, dialogueImageName: "Reason"))
+        StoryState(offsetPercentage: 0.6, dialogueInfo: DialogueInfo(elementIndex: 1, dialogueImageName: "Reason")),
+        StoryState(offsetPercentage: 1.0, dialogueInfo: nil)
     ]
     
     // MARK: - Computed Properties

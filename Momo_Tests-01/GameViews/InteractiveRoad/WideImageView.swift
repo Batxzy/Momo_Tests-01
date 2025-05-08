@@ -31,7 +31,7 @@ extension View {
 struct WideImageView: View {
 // MARK: - Properties
     
-    var image = Image("wide")
+    var image = Image("interacción 11 fondo largo")
     
     @Environment(LevelManager.self) private var levelManager
     
@@ -48,10 +48,9 @@ struct WideImageView: View {
     private let elementPositions = [
             CGPoint(x: 0.31, y: 0.3),
             CGPoint(x: 0.60, y: 0.6),
-            CGPoint(x: 0.96, y: 0.7)
         ]
     
-    private let elementImages = ["Reason", "Shinji", "rectangle33"]
+    private let elementImages = ["Interaccion 11 Momo caminando (2)", "Interaccion 11 persona 1",]
     
     // MARK: - setup
     
@@ -124,7 +123,7 @@ struct WideImageView: View {
                     
                     // Character
                     SpriteAnimationView(
-                        frameImages: ["cat3", "cat1", "cat2", "cat1"],
+                        frameImages: ["Interaccion 11 Momo caminando (3)", "Interaccion 11 Momo caminando (1)", "Interaccion 11 Momo caminando (2) 1", "Interaccion 11 Momo caminando (1)"],
                         frameDuration: 0.2,
                         isTransitioning: Binding(
                             get: { stateManager.isAnimating },

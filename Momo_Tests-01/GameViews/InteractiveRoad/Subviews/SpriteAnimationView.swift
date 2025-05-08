@@ -96,7 +96,7 @@ extension Binding {
 struct SpriteAnimationView_Previews: PreviewProvider {
     static var previews: some View {
         SpriteAnimationView(
-            frameImages: ["cat3", "cat1", "cat2", "cat1"],
+            frameImages: ["Interaccion 11 Momo caminando (3)", "Interaccion 11 Momo caminando (1)", "Interaccion 11 Momo caminando (2) 1", "Interaccion 11 Momo caminando (1)"],
             frameDuration: 0.15,
             isTransitioning: .constant(true)
         )
