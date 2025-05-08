@@ -46,7 +46,7 @@ struct ImageChangeView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 343, height: 673)
-                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
                         .opacity(wasClicked ? 0 : 1)
                     
                 }

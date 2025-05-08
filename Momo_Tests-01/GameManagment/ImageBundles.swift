@@ -17,7 +17,7 @@ public let Scroll_2_1 : [Image] = [Image("Scroll_2_1 Enters(1)"),Image("Scroll_2
 
 public let Scroll_2_2 : [Image] = [Image("Scroll_2_2 DEEP(1)")]
  
-public let Scroll_2_3 : [Image] = [Image("rectangle33"),Image("rectangle33"),Image("Reason")]
+public let Scroll_2_3 : [Image] = [Image("5.1"),Image("5.2"),Image("5.3")]
 
 public let Scroll_2_4 : [Image] = [Image("Scroll_2_4 Touch(1)"),Image("Scroll_2_4 See(2) "),Image("Scroll_2_4 Talk(3)")]
 

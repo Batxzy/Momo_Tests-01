@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct TaskItem: Identifiable {
-    let id = UUID() 
-    var title: String
-    var initialImageName: Image
-    var Dialogueimage : Image
-    var isCompleted: Bool = false
+    let id = UUID()
+        var title: String
+        var initialImageName: Image 
+        var completionTexts: [String]
+        var isCompleted: Bool = false
 }

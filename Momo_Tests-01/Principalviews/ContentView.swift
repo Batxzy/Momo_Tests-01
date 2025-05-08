@@ -96,7 +96,7 @@ struct ContentView: View {
              .environment(previewLevelManager)
              .onAppear {
                  // Set the chapter index when preview appears
-                 previewLevelManager.currentChapterIndex = 1
+                 previewLevelManager.currentChapterIndex = 2
              }
          }
      }

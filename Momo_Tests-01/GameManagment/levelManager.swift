@@ -316,16 +316,21 @@ import SwiftUI
                      ),
                 Level(id: UUID(),
                       name: "Tap_2-3",
-                      content: AnyView(ImageTap(iulstration:Image ("Reason"))),
+                      content: AnyView(ImageTapChange(
+                        initialIllustration: Image("mapa1"),
+                        nextIllustration: Image("mapa2"),
+                        delay: 2.0)),
                       transition: .cameraPan,
                       isCompleted: false
                      ),
+                /*
                 Level(id: UUID(),
                       name: "2_4",
                       content: AnyView(ImageScrollView(images:Scroll_2_4)),
                       transition: .cameraPan,
                       isCompleted: false
                      ),
+                 */
                 Level(id: UUID(),
                       name: "blank",
                       content: AnyView(blankview()),

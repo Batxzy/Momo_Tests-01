@@ -6,52 +6,51 @@
 //
 
 import SwiftUI
-
-
-import SwiftUI
+import AnimateText
 
 struct TaskListView: View {
     // MARK: - Propiedades
     
     @State private var tasks: [TaskItem]
-    
-    @State private var activeTaskIndex: Int? = nil
-    
-    @Environment(LevelManager.self) private var levelManager
-    
-    @State private var currentDialogImage: Image
-    
-    @State private var imageTransitionId = UUID()
-    
-    @State private var shouldUpdateDialogImage = false
-    
-    @State private var nextDialogImage: Image?
+       @State private var activeTaskIndex: Int? = nil
+       @Environment(LevelManager.self) private var levelManager
+       
+       
+       let staticDisplayImage: Image = Image("Dialogue_GreyMan")
+
+       @State private var currentCompletionTexts: [String]
+       @State private var textTransitionId = UUID()
+       
+       @State private var shouldUpdateCompletionTexts = false
+       @State private var nextCompletionTexts: [String]?
     
     // MARK: - INIT
     init() {
-        let defaultDialogImage = Image("Reason")
-        
-    // se definen las tareas con lass iamgenes que va tener su respectiva view cuando le pique
-        
-        _tasks = State(initialValue: [
-            TaskItem(
-                title: "Dar en adopcion al gato",
-                initialImageName: Image("interaccion8(1)"),
-                Dialogueimage: Image("Reason")
-            ),
-            TaskItem(
-                title: "Dejar ir tu interés romántico",
-                initialImageName: Image("interaccion8(2)"),
-                Dialogueimage: Image("rectangle33")
-            ),
-            TaskItem(
-                title: "Menos salidas con amigos 3",
-                initialImageName: Image("interaccion8(3)"),
-                Dialogueimage: Image("rectangle35")
-            )
-        ])
-        _currentDialogImage = State(initialValue: defaultDialogImage)
-    }
+            // Define the texts that appear when each task is completed.
+            let catCompletionTexts = ["¡Bien hecho! Los gatos", "quitan el tiempo y distraen"]
+            let romanceCompletionTexts = ["Perdías dinero en las flores ", "y tiempo en las visitas."]
+        let friendsCompletionTexts = ["¡Perfecto!" ," Después tendrás tiempo ", "de convivir, ahora no."]
+            
+            _tasks = State(initialValue: [
+                TaskItem(
+                    title: "Dar en adopcion al gato",
+                    initialImageName: Image("interaccion8(1)"), // Image for the ImageChangeView overlay
+                    completionTexts: catCompletionTexts
+                ),
+                TaskItem(
+                    title: "Dejar ir tu interés romántico",
+                    initialImageName: Image("interaccion8(2)"),
+                    completionTexts: romanceCompletionTexts
+                ),
+                TaskItem(
+                    title: "Menos salidas con amigos",
+                    initialImageName: Image("interaccion8(3)"),
+                    completionTexts: friendsCompletionTexts
+                )
+            ])
+            
+            _currentCompletionTexts = State(initialValue: ["Cumple todas las tareas"])
+        }
     
     // MARK: - Funciones
     private func handleTaskTap(at index: Int) {
@@ -70,9 +69,8 @@ struct TaskListView: View {
         
         tasks[index].isCompleted = true
         
-        //guarda la imagen que va mostrar despues de picarle
-        nextDialogImage = tasks[index].Dialogueimage
-        shouldUpdateDialogImage = true
+        nextCompletionTexts = tasks[index].completionTexts // Set the texts for the completed task
+        shouldUpdateCompletionTexts = true
         
         //** Controla cuanto dura la animacion al pasar a la tarea final **//
         withAnimation(.easeInOut(duration: 0.9)) {
@@ -102,85 +100,110 @@ struct TaskListView: View {
                 
                 //-- contenedor de la lista de tareas --//
                 VStack(spacing: 30) {
-                    ForEach(tasks.indices, id: \.self) { index in
-                        TaskRowButton(
-                            task: tasks[index],
-                            isDisabled: activeTaskIndex != nil,
-                            onTap: {
-                                handleTaskTap(at: index)
+                ForEach(tasks.indices, id: \.self) { index in
+                                TaskRowButton(
+                                    task: tasks[index],
+                                    isDisabled: activeTaskIndex != nil,
+                                    onTap: {
+                                        handleTaskTap(at: index)
+                                    }
+                                )
                             }
-                        )
-                    }
                         }
                     .padding()
                 
-                currentDialogImage
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 300, height: 200)
-                    .clipped()
-                    .contentShape(Rectangle())
-                    .id(imageTransitionId)
-            
-                //** controla el estilo de transcion de la imagen **//
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .scale(scale: 1.05)),
-                        removal: .opacity.combined(with: .scale(scale: 0.95))
-                    ))
-            }
-            .disabled(activeTaskIndex != nil)
-            
-            //-- todo esto es del overlay que aparece de la tarea --//
-            if let index = activeTaskIndex {
-                ImageChangeView(
-                    initialImage: tasks[index].initialImageName,
-                    onComplete: {
-                        completeTask(at: index)
+                VStack(spacing: 19) {
+                    HStack {
+                        Spacer ()
+                        
+                        staticDisplayImage
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 236, height: 90.5)
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                            .contentShape(Rectangle())
                     }
-                )
-                //** controla el estilo de transcion de las tareas **//
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing),
-                    removal: .move(edge: .leading)
-                ))
-                .ignoresSafeArea()
-                .zIndex(1)
-            }
-            
-        }
-        
-    // cuandoo cambia el index de task hace los cambios de la imagen para que sucedan despues de la que pasa la animacion
-        .onChange(of: activeTaskIndex) {
-            if activeTaskIndex == nil && shouldUpdateDialogImage, let nextImage = nextDialogImage {
-        
-                //** Controla el delay despues de la animacion **//
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     
-                    //** Controla cuanto dura la animacion entre las imagenes **//
-                    withAnimation(.easeInOut(duration: 0.6)) {
-                        imageTransitionId = UUID()
-                        currentDialogImage = nextImage
+                    HStack{
+                        if !currentCompletionTexts.isEmpty {
+                            DialogueTextView(
+                                texts: currentCompletionTexts,
+                                textFont: Font.Patrick18,
+                                textAppearDelay: 0.05,
+                                textLineSpacing: 2.0,
+                                enableConstantShake: true,
+                                constantShakeIntensity: 0,
+                                constantShakeSpeed: 0,
+                                onAnimationComplete: {
+                                }
+                            )
+                            .padding(16)
+                            .frame(width: 236,height: 90.5)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .background(Color.black.opacity(0.75))
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                            .id(textTransitionId)
+                            .transition(.opacity.combined(with: .offset(y: 10)))
+                        }
+                        Spacer()
                     }
-                    shouldUpdateDialogImage = false
-                    nextDialogImage = nil
                 }
+                .frame(width: 300, height: 200)
+                
             }
-        }
-    }
-}
+            .padding(20)
+            .disabled(activeTaskIndex != nil)
+                            
+                            if let index = activeTaskIndex {
+                                ImageChangeView(
+                                    initialImage: tasks[index].initialImageName,
+                                    onComplete: {
+                                        completeTask(at: index)
+                                    }
+                                )
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .trailing),
+                                    removal: .move(edge: .leading)
+                                ))
+                                .ignoresSafeArea()
+                                .zIndex(1)
+                            }
+                        }
+                        .onChange(of: activeTaskIndex) { oldValue, newValue in
+                           
+                            if newValue == nil && shouldUpdateCompletionTexts {
+                                if let nextTexts = self.nextCompletionTexts {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        withAnimation(.easeInOut(duration: 0.6)) {
+                                            textTransitionId = UUID()
+                                            currentCompletionTexts = nextTexts
+                                        }
+                                        shouldUpdateCompletionTexts = false
+                                        self.nextCompletionTexts = nil
+                                    }
+                                } else {
+                                    shouldUpdateCompletionTexts = false
+                                }
+                            }
+                        }
+                    }
+                }
     // MARK: - Helper Views
-struct TaskRowButton: View {
+struct TaskRowButton: View { // No changes needed from previous version
     let task: TaskItem
     let isDisabled: Bool
     let onTap: () -> Void
     
     var body: some View {
         Button(action: onTap) {
-                Text(task.title)
-                    .font(.Patrick48)
-                    .strikethrough(task.isCompleted, color: .gray)
-                    .foregroundColor(task.isCompleted ? .gray : .primary)
-                    .contentShape(Rectangle())
+            Text(task.title)
+                .font(.Patrick40) // Ensure this custom font is available
+                .strikethrough(task.isCompleted, color: .gray)
+                .foregroundColor(task.isCompleted ? .gray : .primary)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
         }
         .disabled(task.isCompleted || isDisabled)
         .opacity(isDisabled && !task.isCompleted ? 0.6 : 1.0)
